@@ -12,6 +12,7 @@ import Vue2LeafletRotatedMarker from 'vue2-leaflet-rotatedmarker'
 
 import Sign from './components/Sign.vue'
 import Perusahaan from './components/Perusahaan.vue'
+import Customer from './components/Customer.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -27,7 +28,8 @@ Vue.component('l-rotated-marker', Vue2LeafletRotatedMarker)
 
 Vue.config.productionTip = false
 
-const routes = [{
+const routes = [
+    {
         name: 'Sign',
         path: '/',
         component: Sign
@@ -37,6 +39,11 @@ const routes = [{
         path: '/perusahaan',
         component: Perusahaan
     },
+    {
+        name: 'Customer',
+        path: '/customers',
+        component: Customer
+    }
 ];
 
 const router = new VueRouter({ mode: 'history', routes: routes })
