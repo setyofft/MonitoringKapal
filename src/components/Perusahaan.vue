@@ -355,7 +355,8 @@ export default {
 
             //data maps
             url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+            attribution:
+                '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
             zoom: 5,
             geojson: null,
             stylegeojson: {
