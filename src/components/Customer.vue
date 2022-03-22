@@ -9,7 +9,10 @@
                             <div class="iq-header-title">
                                 <h4 class="card-title">Customers</h4>
                             </div>
-                            <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#tambah">
+                            <button class="btn btn-outline-primary btn-sm" 
+                                data-toggle="modal" data-target="#form_customer" 
+                                @click="statusForm = 'create'"
+                            >
                                 Tambah
                             </button>
                         </div>
@@ -29,14 +32,25 @@
                                 <div class="col-lg-4 pt-1">
                                     <button type="button" 
                                         class="btn btn-sm btn-outline-dark mr-2"
-                                        @click="perusahaan = kapal = akun = selectedCustomer = null"
+                                        @click="perusahaan = kapal = liCustomerActive = null"
                                     >
                                         Cancel
                                     </button>
                                 </div>
                                 <div class="col-lg-8 pt-1 text-right mb-1">
-                                    <button type="button" class="btn btn-sm btn-outline-success mr-2">Edit Data</button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger mr-2">Hapus</button>
+                                    <button type="button" 
+                                        class="btn btn-sm btn-outline-success mr-2"
+                                        data-toggle="modal" data-target="#form_customer"
+                                        @click="editCustomer()"
+                                    >
+                                        Edit Data
+                                    </button>
+                                    <button type="button" 
+                                        class="btn btn-sm btn-outline-danger mr-2"
+                                        @click="deleteCustomer(); akun.email = null"
+                                    >
+                                        Hapus
+                                    </button>
                                 </div>
                             </div>
                             <hr class="mb-2"/>
@@ -44,7 +58,7 @@
                                 <li class="d-flex mb-4 align-items-center pr-1"
                                     v-for="item in customer" 
                                     :key="item.id" 
-                                    :class="{'active-li': item.id === selectedCustomer}"
+                                    :class="{'active-li': item.id === liCustomerActive}"
                                     @click="getSingleCustomer(item.id)"
                                 >
                                     <div class="user-img img-fluid">
@@ -72,7 +86,7 @@
                     </div>
                 </div>
                 <!-- bila informasi customer tidak ada yang di-select -->
-                <div v-if="!perusahaan && !akun && !kapal" class="col-lg-9">
+                <div v-if="!perusahaan && !kapal" class="col-lg-9">
                     <div class="mt-5 text-center" width="100%">
                         <h5 class="mb-5" style="margin-top: 10%; color: #ffc727">
                             Data customer belum dipilih !
@@ -80,7 +94,7 @@
                         <img src="images/5667051.png" class="mt-2">
                     </div>
                 </div>
-                <!-- bila ada customer yang di-select -->
+                <!-- bila ada customer yang di-select - start -->
                 <div class="col-lg-6" v-if="perusahaan">
                     <div class="row">
                         <div class="iq-card iq-user-profile-block" style="height: 83%;">
@@ -98,17 +112,19 @@
                                             {{ !akun ? '-' : akun.status }}
                                         </p>
                                         <p v-if="!akun" class="text-danger">Customer belum mempunyai akun! 
-                                            <button data-toggle="modal" data-target="#akun-customer"
-                                                data-backdrop="static" data-keyboard="false" id="createakun"
+                                            <button data-toggle="modal" data-target="#form_akun"
+                                                data-backdrop="static" data-keyboard="false"
                                                 class="btn btn-sm btn-outline-danger"
+                                                @click="statusAkun = 'create'; akun.password = null"
                                             >
                                                 Create !
                                             </button>
                                         </p>
                                         <p v-if="akun" class="text-primary">Customer sudah mempunyai akun! 
-                                            <button data-toggle="modal" data-target="#akun-customer"
-                                                data-backdrop="static" data-keyboard="false" id="editakun"
+                                            <button data-toggle="modal" data-target="#form_akun"
+                                                data-backdrop="static" data-keyboard="false"
                                                 class="btn btn-sm btn-outline-primary"
+                                                @click="statusAkun = 'edit'; akun.password = null"
                                             >
                                                 Edit !
                                             </button>
@@ -217,7 +233,7 @@
                                     :key="item.id"
                                 >
                                     <div class="media-support-info ml-3">
-                                        <h6 :class="{'text-danger': !item.speed || parseFloat(item.speed) <= 0.0}">{{ item.name }}</h6>
+                                        <h6 :class="{'text-danger': !item.timestamp || item.timestamp < item.tglNow}">{{ item.name }}</h6>
                                         <p class="mb-0 font-size-12">{{ item.sn }}</p>
                                     </div>
                                     <ul class="iq-social-media" style="display: contents; line-height: 0px;">
@@ -242,6 +258,130 @@
                         </div>
                     </div>
                 </div>
+                <!-- bila ada customer yang di-select - end -->
+            </div>
+        </div>
+        <!-- modal section -->
+        <!-- modal form customer - digunakan untuk create dan edit customer -->
+        <div class="modal fade" id="form_customer" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" v-if="statusForm == 'create'">Tambah Customer</h5>
+                        <h5 class="modal-title" v-if="statusForm == 'edit'">Edit Customer</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nama Customer</label>
+                                    <input v-model="form.customer_name" autoconplete="false" type="text" placeholder="Masukkan nama customer" class="form-control"> 
+                                </div>
+                                <div class="form-group">
+                                    <label>NPWP</label>
+                                    <input v-model="form.npwp" autocomplete="false" type="text" placeholder="Masukkan nomor NPWP" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input v-model="form.email" autocomplete="false" type="email" placeholder="Masukkan email" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>No Telephone</label>
+                                    <input v-model="form.phone" autocomplete="false" type="text" placeholder="Masukkan nomor telepon" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>No Handphone</label>
+                                    <input v-model="form.contact_hp" autocomplete="false" type="text" placeholder="Masukkan nomor handphone" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Contact</label>
+                                    <input v-model="form.contact" autocomplete="false" type="text" placeholder="Masukkan contact" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>No Fax</label>
+                                    <input v-model="form.fax" autocomplete="false" type="text" placeholder="Masukkan nomor fax" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Agent</label>
+                                    <input v-model="form.agent" autocomplete="false" type="text" placeholder="Masukkan nama agent" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Provinsi</label>
+                                    <input v-model="form.province" autocomplete="false" type="text" placeholder="Masukkan nama provinsi" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Kota</label>
+                                    <input v-model="form.city" autocomplete="false" type="text" placeholder="Masukkan nama kota" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Postal Kode</label>
+                                    <input v-model="form.postal_code" autocomplete="false" type="text" placeholder="Masukkan kode pos" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Alamat</label>
+                                    <textarea v-model="form.address" rows="2" cols="3" placeholder="Masukkan alamat" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" tabindex="-1"
+                            data-dismiss="modal" @click="createCustomer();"
+                            v-if="statusForm == 'create'"
+                        >
+                            Simpan
+                        </button>
+                        <button type="button" class="btn btn-primary" tabindex="-1"
+                            data-dismiss="modal" @click="updateCustomer()"
+                            v-if="statusForm == 'edit'"
+                        >
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- modal form akun -->
+        <div class="modal fade" id="form_akun" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" v-if="statusAkun == 'create'">Create Account Customer</h5>
+                        <h5 class="modal-title" v-if="statusAkun == 'edit'">Edit Account Customer</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input v-model="akun.email" type="email" autoccomplete="false" class="form-control" placeholder="Masukkan email">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input v-model="akun.password" :type="showPass" autoccomplete="false" class="form-control" placeholder="Masukkan password">
+                            <a href="javascript:void(0)" class="search-link setShow" 
+                                @click="showPass = (showPass == 'password' ? 'test' : 'password');"
+                            >
+                                <i class="ri-eye-off-line"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal"
+                            @click="statusAkun == 'create' ? createAkun() : updateAkun();"
+                        >
+                            Save changes
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -261,13 +401,33 @@ export default {
         return {
             customer: [],
             CnmCustomer: null,
-            selectedCustomer: null,
+
+            // form customer
+            form: {},
+            statusForm: 'create', // edit atau create
+
+            // form akun
+            akun: {
+                // dinamic - based input form
+                email: null,
+                password: null,
+
+                // kinda static :wink 😉
+                level: 'user',
+                status: 'aktif',
+                id_customer: null,
+                tgl_buat: this.getCurrentFormatedDate(),
+            },
+            statusAkun: 'create',
 
             // individual data
             perusahaan: null,
-            akun: null,
             kapal: null,
             kapalTotal: [],
+
+            // attribute element / component
+            liCustomerActive: null,
+            showPass: 'password',
         };
     },
     beforeCreate: function () {
@@ -284,6 +444,7 @@ export default {
         this.idakun = this.$session.get("level");
     },
     methods: {
+        // customer section
         async getCustomer() {
             try {
                 this.showloadingBar();
@@ -313,17 +474,147 @@ export default {
                 const kapal = await axios.get(`https://track.kapalpintar.co.id/api/kapal/${id}`);
 
                 this.perusahaan = perusahaan.data.results[0];
-                this.akun = akun.data.results[0];
+                if(akun.data.results[0]) this.akun.email = akun.data.results[0].email;
                 this.kapal = kapal.data;
-                this.kapalTotal = this.countKapal(kapal);
+                this.kapalTotal = this.countKapal();
 
                 this.closeloadingBar();
             }catch (err) {
                 console.log(err);
             }
         },
+        async createCustomer() {
+            try {
+                this.showloadingBar();
+                await axios.post('https://track.kapalpintar.co.id/api/addcustomer', this.form);
+                this.closeloadingBar();
+
+                this.$swal.fire({
+                    title: 'Berhasil',
+                    text: 'Data customer berhasil ditambahkan',
+                    type: 'success',
+                    confirmButtonText: 'Ok'
+                });
+                this.CnmCustomer = this.form.customer_name;
+                this.searchCustomer();
+
+                this.form = {};
+            } catch (err) {
+                console.log(err);
+            }
+        },
+        async editCustomer() {
+            try {
+                this.showloadingBar();
+                this.statusForm = 'edit';
+                const response = await axios.get(`https://track.kapalpintar.co.id/api/singlecustomer/${this.perusahaan.id}`);
+                this.form = response.data.results[0];
+
+                this.closeloadingBar();
+            } catch(err) {
+                this.closeloadingBar();
+                console.log(err);
+            }
+        },
+        async updateCustomer() {
+            try {
+                this.showloadingBar();
+                await axios.put(`https://track.kapalpintar.co.id/api/editcustomer/${this.perusahaan.id}`, this.form);
+                this.getSingleCustomer(this.form.id);
+                this.closeloadingBar();
+
+                this.$swal.fire({
+                    title: 'Berhasil',
+                    text: 'Data customer berhasil diedit',
+                    type: 'success',
+                    confirmButtonText: 'Ok'
+                });
+
+                this.form = {};
+            } catch (err) {
+                console.log(err);
+            }
+        },
+        async deleteCustomer() {
+            this.$swal.fire({
+                title: 'Hapus data customer?',
+                text: "Data customer akan dihapus secara permanen",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Hapus'
+            }).then(async (result) => {
+                if (result.value) {
+                    try {
+                        this.showloadingBar()
+                        await axios.delete(`https://track.kapalpintar.co.id/api/customer/${this.perusahaan.id}`, {
+                            headers: {
+                                'Access-Control-Allow-Origin': '*',
+                            }
+                        });
+                        this.closeloadingBar();
+
+                        this.CnmCustomer = this.perusahaan = this.akun.email = this.kapal = null;
+                        this.kapalTotal = [];
+                        this.getCustomer();
+                        this.$swal.fire({
+                            title: 'Berhasil',
+                            text: 'Data customer berhasil dihapus',
+                            type: 'success',
+                            confirmButtonText: 'Ok'
+                        });
+                    } catch (err) {
+                        this.closeloadingBar();
+                        console.log(err);
+                    }
+                }
+            });
+        },
+
+        // akun section
+        async createAkun() {
+            try {
+                this.showloadingBar();
+                this.akun.id_customer = this.perusahaan.id;
+                await axios.post('https://track.kapalpintar.co.id/api/addakun', this.akun);
+                this.akun.password = null;
+
+                this.getSingleCustomer(this.akun.id_customer);
+                this.$swal.fire({
+                    title: 'Berhasil',
+                    text: 'Data akun berhasil ditambahkan',
+                    type: 'success',
+                    confirmButtonText: 'Ok'
+                });
+            } catch(err) {
+                this.closeloadingBar();
+                console.log(err);
+            }
+        },
+        async updateAkun() {
+            try {
+                this.showloadingBar();
+                this.akun.id_customer = this.perusahaan.id;
+                await axios.put(`https://track.kapalpintar.co.id/api/editakun/${this.akun.id_customer}`, this.akun);
+                this.akun.password = null;
+
+                this.getSingleCustomer(this.akun.id_customer);
+                this.$swal.fire({
+                    title: 'Berhasil',
+                    text: 'Data akun berhasil ditambahkan',
+                    type: 'success',
+                    confirmButtonText: 'Ok'
+                });
+            } catch(err) {
+                this.closeloadingBar();
+                console.log(err);
+            }
+        },
+
+        // trait
         activeListCustomer(id) {
-            this.selectedCustomer = id ? id : null;
+            this.liCustomerActive = id ? id : null;
         },
         showloadingBar() {
             this.$swal.fire({
@@ -336,12 +627,12 @@ export default {
                 showConfirmButton: false,
             }).close();
         },
-        countKapal(kapal) {
+        countKapal() {
             let result = {total: 0, on: 0, off: 0};
 
-            for (const key in kapal) {
-                if (Object.hasOwnProperty.call(kapal, key)) {
-                    const e = kapal[key];
+            for (const key in this.kapal) {
+                if (Object.hasOwnProperty.call(this.kapal, key)) {
+                    const e = this.kapal[key];
 
                     if(e.timestamp >= e.tglNow) {
                         result.on++
@@ -354,6 +645,12 @@ export default {
             }
 
             return result;
+        },
+        getCurrentFormatedDate() {
+            const d = new Date();
+            let d_arr = d.toLocaleDateString('id-ID').split('/');
+
+            return d_arr[2] +'-'+ d_arr[1] +'-'+ d_arr[0]; // YYYY-m-d
         }
     }
 }
@@ -377,5 +674,11 @@ export default {
     right: 30px;
     top: 12.5%;
     font-size: 15pt;
+}
+.setShow {
+    position: absolute;
+    right: 7%;
+    bottom: 15%;
+    font-size: 25px;
 }
 </style>
