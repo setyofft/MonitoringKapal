@@ -216,7 +216,9 @@
                             <div class="iq-header-title">
                                 <h4 class="card-title">Kapal</h4>
                             </div>
-                            <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#tambah-kapal">
+                            <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#form_kapal"
+                                @click="selectedKapal = {} ;statusKapal = 'create'"
+                            >
                                 Tambah
                             </button>
                         </div>
@@ -228,8 +230,11 @@
                                 </a>
                             </div>
                             <ul id="listkapal" class="doctors-lists m-0 p-0 iq-email-sender-list" style="height: 64vh;">
+                                <li class="d-flex mb-2 align-items-center justify-content-center text-dark" v-if="!kapal || !kapal.length">
+                                    Belum ada data kapal!
+                                </li>
                                 <li class="d-flex mb-2 align-items-center pr-1"
-                                    v-for="item in kapal"
+                                    v-for="(item, key) in kapal"
                                     :key="item.id"
                                 >
                                     <div class="media-support-info ml-3">
@@ -238,7 +243,9 @@
                                     </div>
                                     <ul class="iq-social-media" style="display: contents; line-height: 0px;">
                                         <li>
-                                            <a href="javascript:void(0)">
+                                            <a href="javascript:void(0)" data-toggle="modal" data-target="#form_kapal" 
+                                                @click="formKapal = kapal[key]; statusKapal = 'edit';"
+                                            >
                                                 <i class="ri-edit-box-line"></i>
                                             </a>
                                         </li>
@@ -248,7 +255,7 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="javascript:void(0)" data-toggle="modal" data-target="#detail-kapal">
+                                            <a href="javascript:void(0)" data-toggle="modal" data-target="#detail_kapal" @click="activeListKapal(key)">
                                                 <i class="ri-file-list-2-line"></i>
                                             </a>
                                         </li>
@@ -384,6 +391,163 @@
                 </div>
             </div>
         </div>
+        <!-- form kapal -->
+        <div class="modal fade" id="form_kapal" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" v-if="statusKapal == 'create'">Tambah Kapal</h5>
+                        <h5 class="modal-title" v-if="statusKapal == 'edit'">Edit Kapal</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label>Vessel ID</label>
+                                    <input v-model="formKapal.id" autocomplete="false" type="text" placeholder="Masukkan vessel ID" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>IMEI</label>
+                                    <input v-model="formKapal.imei" autocomplete="false" type="text" placeholder="Masukkan nomor IMEI" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Categori</label>
+                                    <select v-model="formKapal.category_id" class="form-control">
+                                        <option value="" selected disabled>Pilih kategori customer</option>
+                                        <option v-for="item in categoryCustomer" :key="item.id" :value="item.id">{{ item.name }}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipe Kapal</label>
+                                    <select v-model="formKapal.type_id" class="form-control">
+                                        <option value="" selected disabled>Pilih tipe kapal</option>
+                                        <option v-for="item in tipeKapal" :key="item.id" :value="item.id">{{ item.name }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label>ATP Start</label>
+                                    <input v-model="formKapal.atp_start" autocomplete="false" type="date" placeholder="mm/dd/yyyy" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>ATP End</label>
+                                    <input v-model="formKapal.atp_end" autocomplete="false" type="date" placeholder="mm/dd/yyyy" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Device ID/SN</label>
+                                    <input autocomplete="false" type="text" placeholder="Masukkan Device ID/SN" class="form-control"
+                                        v-model="formKapal.sn" :disabled="statusKapal == 'edit' ? true : false">
+                                    <button type="button" class="btn btn-outline-danger btn-sm mr-2 setcarisn" 
+                                        @click="getDeviceID()" :disabled="statusKapal == 'edit' ? true : false"
+                                    >
+                                        Cari
+                                    </button>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nama Kapal</label>
+                                    <input autocomplete="false" type="text" placeholder="Masukkan nama kapal" class="form-control"
+                                        v-model="formKapal.name" :disabled="statusKapal == 'create' ? true : false"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="formKapal = {}">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" @click="createKapal()" v-if="statusKapal == 'create'">Save Changes</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" @click="updateKapal()" v-if="statusKapal == 'edit'">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- detail kapal -->
+        <div class="modal fade" id="detail_kapal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Detail Kapal {{ selectedKapal.name }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <ul class="m-0 p-0">
+                                    <li class="d-flex mb-4 align-items-center">
+                                        <div class="media-support-info">
+                                            <h6>IMEI Kapal</h6>
+                                            <a href="javascript:void(0)">
+                                                {{ selectedKapal.imei ? selectedKapal.imei : '-' }}
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="d-flex mb-4 align-items-center">
+                                        <div class="media-support-info">
+                                            <h6>Vessel ID</h6>
+                                            <a href="javascript:void(0)">
+                                                {{ selectedKapal.id ? selectedKapal.id : '-' }}
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="d-flex mb-4 align-items-center">
+                                        <div class="media-support-info">
+                                            <h6>Waktu Terakhir</h6>
+                                            <a href="javascript:void(0)">
+                                                {{ selectedKapal.last_update ? selectedKapal.last_update : '-' }}
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="d-flex mb-4 align-items-center">
+                                        <div class="media-support-info">
+                                            <h6>Speed</h6>
+                                            <a href="javascript:void(0)">
+                                                {{ selectedKapal.speed ? selectedKapal.speed : '-' }}
+                                            </a>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-lg-6">
+                                <ul class="m-0 p-0">
+                                    <li class="d-flex mb-4 align-items-center">
+                                        <div class="media-support-info">
+                                            <h6>SN</h6>
+                                            <a href="javascript:void(0)">
+                                                {{ selectedKapal.sn ? selectedKapal.sn : '-' }}
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="d-flex mb-4 align-items-center">
+                                        <div class="media-support-info">
+                                            <h6>Status Kapal</h6>
+                                            <a href="javascript:void(0)">active</a>
+                                        </div>
+                                    </li>
+                                    <li class="d-flex mb-4 align-items-center">
+                                        <div class="media-support-info">
+                                            <h6>Latitude/Longitude</h6>
+                                            <a href="javascript:void(0)">
+                                                {{ selectedKapal.lat ? selectedKapal.lat : '-' +' / '+ selectedKapal.lon ? selectedKapal.lon : '-' }}
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="d-flex mb-4 align-items-center">
+                                        <div class="media-support-info">
+                                            <h6>Atp Start/End</h6>
+                                            <a href="javascript:void(0)">
+                                                {{ selectedKapal.atp_start ? selectedKapal.atp_start : '-' +' / '+ selectedKapal.atp_end ? selectedKapal.atp_end : '-' }}
+                                            </a>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -400,6 +564,7 @@ export default {
     data() {
         return {
             customer: [],
+            categoryCustomer: [],
             CnmCustomer: null,
 
             // form customer
@@ -419,6 +584,12 @@ export default {
                 tgl_buat: this.getCurrentFormatedDate(),
             },
             statusAkun: 'create',
+
+            // form kapal
+            selectedKapal: {},
+            tipeKapal: {},
+            formKapal: {},
+            statusKapal: 'create',
 
             // individual data
             perusahaan: null,
@@ -448,8 +619,13 @@ export default {
         async getCustomer() {
             try {
                 this.showloadingBar();
-                const response = await axios.get(`https://track.kapalpintar.co.id/api/data_perusahaan`);
-                this.customer = response.data.results;
+                const customer = await axios.get(`https://track.kapalpintar.co.id/api/data_perusahaan`);
+                const tipeKapal = await axios.get(`https://track.kapalpintar.co.id/api/tipe_kapal`);
+                const categoryCustomer = await axios.get(`https://track.kapalpintar.co.id/api/kategori_customers`);
+
+                this.customer = customer.data.results;
+                this.tipeKapal = tipeKapal.data.results;
+                this.categoryCustomer = categoryCustomer.data.results;
                 this.closeloadingBar();
             } catch (error) {
                 console.log(error);
@@ -612,9 +788,105 @@ export default {
             }
         },
 
+        // kapal section
+        async getDeviceID() {
+            try {
+                this.showloadingBar();
+                const response = await axios.get(`https://track.kapalpintar.co.id/api/getdeviceid/${this.formKapal.sn}`);
+                if(!response.data.results.length) {
+                    this.$swal.fire({
+                        title: 'Device ID/SN yang dimasukan tidak ditemukan',
+                        text: 'Harap cek kembali input yang dimasukkan!',
+                        type: 'warning',
+                        confirmButtonText: 'Ok'
+                    });
+                } else {
+                    this.statusKapal = 'edit';
+                    this.formKapal.name = response.data.results[0].name;
+                    this.statusKapal = 'create';
+                    console.log(response.data.results[0].name, this.formKapal.name);
+                }
+
+                this.closeloadingBar();
+            } catch(err) {
+                console.log(err);
+                this.closeloadingBar();
+            }
+        },
+        async createKapal() {
+            try {
+                this.showloadingBar();
+
+                this.formKapal.tipeForm = "Tambah";
+                if(this.formKapal.sn) {
+                    const response = await axios.put(`https://track.kapalpintar.co.id/api/updatepemilikkapal/${this.formKapal.sn}`, this.formKapal);
+
+                    this.closeloadingBar();
+                    this.getSingleCustomer(this.perusahaan.id);
+                    if(response.data.status == 1) {
+                        this.$swal.fire({
+                            title: 'Berhasil',
+                            text: 'Data kapal berhasil ditambahkan',
+                            type: 'success',
+                            confirmButtonText: 'Ok'
+                        });
+                    } else if(response.data.status == 2) {
+                        this.$swal.fire({
+                            title: 'Gagal',
+                            text: response.data.msg,
+                            type: 'danger',
+                            confirmButtonText: 'Ok'
+                        });
+                    } else {
+                        this.$swal.fire({
+                            title: 'Gagal',
+                            text: 'Terjadi kesalahan, silahkan coba lagi',
+                            type: 'danger',
+                            confirmButtonText: 'Ok'
+                        });
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000);
+                    }
+                } else {
+                    this.$swal.fire({
+                        title: 'Device ID/SN yang dimasukan tidak ditemukan',
+                        text: 'Harap cek kembali input yang dimasukkan!',
+                        type: 'warning',
+                        confirmButtonText: 'Ok'
+                    });
+                }
+            } catch(err) {
+                this.closeloadingBar();
+                console.log(err);
+            }
+        },
+        async updateKapal() {
+            try {
+                this.showloadingBar();
+                this.formKapal.tipeForm = 'Edit';
+                await axios.put(`https://track.kapalpintar.co.id/api/updatepemilikkapal/${this.formKapal.sn}`, this.formKapal);
+
+                this.formKapal = {};
+                this.getSingleCustomer(this.perusahaan.id);
+                this.$swal.fire({
+                    title: 'Berhasil',
+                    text: 'Data kapal berhasil diedit',
+                    type: 'success',
+                    confirmButtonText: 'Ok'
+                });
+            } catch(err) {
+                this.closeloadingBar();
+                console.log(err);
+            }
+        },
+
         // trait
         activeListCustomer(id) {
             this.liCustomerActive = id ? id : null;
+        },
+        activeListKapal(key) {
+            this.selectedKapal = this.kapal[key];
         },
         showloadingBar() {
             this.$swal.fire({
@@ -680,5 +952,13 @@ export default {
     right: 7%;
     bottom: 15%;
     font-size: 25px;
+}
+.media-support-info {
+    flex: 1 1 0%;
+}
+.setcarisn {
+    position: absolute;
+    right: 3%;
+    bottom: 31.7%;
 }
 </style>
