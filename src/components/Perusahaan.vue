@@ -510,29 +510,24 @@ export default {
         },
         async getKapal(refresh_state = false) {
             try {
+                this.showloadingBar();
                 if (this.$session.get('level') === 'root') {
                     this.getUrl = 'https://track.kapalpintar.co.id/api/kapal_all';
                 } else {
                     this.getUrl = `https://track.kapalpintar.co.id/api/kapal/${this.$session.get('id')}`;
                 }
-                console.log(refresh_state);
 
                 if(refresh_state) {
-                    // declare default center
+                    this.heading = this.tglHistori = this.dari = this.sampai = this.deviceId = this.CnmKapal =  this.selectedKapal = null;
                     this.center = [-5.3121961, 116.0877759];
+                    // this.markerKapal = null;
+                    // this.markerKapal = [];
+                    // this.markerRute.length = 0;
+                    // this.lineLatLon.length = 0;
+                    // this.markerRute = [];
+                    // this.lineLatLon = [];
+                    // this.detailKapal = {};
 
-                    // normalize everything - provide default data
-                    this.kapalSingle = [];
-                    this.markerRute = [];
-                    this.lineLatLon = [];
-                    this.icon = null;
-                    this.heading = null;
-                    this.tglHistori = null;
-                    this.dari = null;
-                    this.sampai = null;
-                    this.deviceId = null;
-                    this.CnmKapal = null;
-                    this.detailKapal = {};
                 }
 
                 const response = await axios.get(this.getUrl);
@@ -671,6 +666,7 @@ export default {
                 }
 
                 const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, data);
+                this.markerKapal = [];
                 this.kapalSingle = [];
                 this.markerRute = response.data['histori'];
                 this.lineLatLon = response.data['polyline'];
