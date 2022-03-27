@@ -9,6 +9,7 @@ import VueSession from 'vue-session'
 import 'leaflet/dist/leaflet.css';
 import LControlFullscreen from 'vue2-leaflet-fullscreen';
 import Vue2LeafletRotatedMarker from 'vue2-leaflet-rotatedmarker'
+import Multiselect from 'vue-multiselect';
 
 import Sign from './components/Sign.vue'
 import Perusahaan from './components/Perusahaan.vue'
@@ -24,7 +25,8 @@ Vue.use(VueSweetalert2)
 Vue.use(Vuelidate)
 Vue.use(VueSession)
 Vue.component('l-control-fullscreen', LControlFullscreen);
-Vue.component('l-rotated-marker', Vue2LeafletRotatedMarker)
+Vue.component('l-rotated-marker', Vue2LeafletRotatedMarker);
+Vue.component('multiselect', Multiselect);
 
 Vue.config.productionTip = false
 

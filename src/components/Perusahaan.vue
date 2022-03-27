@@ -56,35 +56,19 @@
                 <div class="col-lg-9">
                     <div class="iq-card iq-card-block iq-card-stretch iq-card-height">
                         <div class="iq-card-body p-0">
-                            <div class="col-md-12 popFilter pl-3 pr-3 pt-3" v-if="tglHistori">
-                                <h6 class="text-center mb-3" style="font-weight: 600;">{{kapalterpilih}}</h6>
-                                <div class="row">
-                                    <div class="col-lg-6">
-                                        <div class="form-group">
-                                            <label>Tanggal Dari</label>
-                                            <select v-model="tgldari" required class="form-control form-control-sm">
-                                                <option selected>Pilih Tanggal Dari</option>
-                                                <option v-for="data in tglHistori" :key="data.id" :value="data.tanggal">
-                                                    {{data.tanggal}}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <div class="form-group">
-                                            <label>Tanggal Sampai</label>
-                                            <select v-model="tglsampai" @change="getRute"
-                                                class="form-control form-control-sm">
-                                                <option selected>Pilih Tanggal Sampai</option>
-                                                <option v-for="data in tglHistori" :key="data.id" :value="data.tanggal">
-                                                    {{data.tanggal}}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             <l-map class="map" style="height: 82vh; z-index: 0;" :zoom="zoom" :center="center">
                                 <l-control-fullscreen />
-                                <l-tile-layer :url="url"></l-tile-layer>
+                                <l-control position="topleft" v-if="kapalSingle.length || lineLatLon.length">
+                                    <a href="javascript:void(0)" title="Back All Kapal" class="filtertrack" @click="getKapal(true)">
+                                        <i class="ri-refresh-fill" style="font-size: 15px;"></i>
+                                    </a>
+                                </l-control>
+                                <l-control position="topright" v-if="kapalSingle.length">
+                                    <a href="javascript:void(0)" title="Filter" data-toggle="modal" data-target="#tracing" class="filtertrack">
+                                        <i class="ri-filter-2-fill"></i>
+                                    </a>
+                                </l-control>
+                                <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
                                 <l-geo-json
                                     :geojson="geojson" 
                                     :options-style="stylegeojson" 
@@ -94,38 +78,63 @@
                                     <l-popup>
                                         <table>
                                             <tr>
-                                                <th>Nama Perusahaan</th>
+                                                <th width="50%">Nama Perusahaan</th>
                                                 <th>:</th>
-                                                <td>{{Knmperusahaan}}</td>
+                                                <td>{{detailKapal.customer_name ? detailKapal.customer_name : '-'}}</td>
                                             </tr>
                                             <tr>
-                                                <th>Nama Kapal</th>
+                                                <th width="50%">Nama Kapal</th>
                                                 <th>:</th>
-                                                <td>{{Knmkapal}}</td>
+                                                <td>{{detailKapal.name ? detailKapal.name : '-'}}</td>
                                             </tr>
                                             <tr>
-                                                <th>Speed</th>
+                                                <th width="50%">Vessel ID</th>
                                                 <th>:</th>
-                                                <td>{{Kspeed}}</td>
+                                                <th>{{detailKapal.id ? detailKapal.id : '-'}}</th>
                                             </tr>
                                             <tr>
-                                                <th>Imei</th>
+                                                <th width="50%">SN</th>
                                                 <th>:</th>
-                                                <td>{{Kimei}}</td>
+                                                <th>{{detailKapal.sn ? detailKapal.sn : '-'}}</th>
                                             </tr>
                                             <tr>
-                                                <th>Atp Start / Atp End</th>
+                                                <th width="50%">Speed</th>
                                                 <th>:</th>
-                                                <td>{{Katpstart}} / {{Katpend}}</td>
+                                                <td>{{detailKapal.speed ? detailKapal.speed : 0}}</td>
                                             </tr>
                                             <tr>
-                                                <th>Last Update</th>
+                                                <th width="50%">Heading</th>
                                                 <th>:</th>
-                                                <td :class="Klastupdate < KtglNow ? 'text-danger' : '' ">
-                                                    {{Klastupdate}}
+                                                <th>{{detailKapal.heading ? detailKapal.heading : '-'}}</th>
+                                            </tr>
+                                            <tr>
+                                                <th width="50%">Latitude / Longitude</th>
+                                                <th>:</th>
+                                                <th>{{detailKapal.lat +' / '+ detailKapal.lon}}</th>
+                                            </tr>
+                                            <tr>
+                                                <th width="50%">Atp Start / Atp End</th>
+                                                <th>:</th>
+                                                <th>{{formatISODate(detailKapal.atp_start) +' / '+ formatISODate(detailKapal.atp_end)}}</th>
+                                            </tr>
+                                            <tr>
+                                                <th width="50%">Last Update</th>
+                                                <th>:</th>
+                                                <td :class="detailKapal.timestamp < detailKapal.tglNow ? 'text-danger' : '' ">
+                                                    {{detailKapal.timestamp ? detailKapal.timestamp : '-'}}
                                                 </td>
                                             </tr>
                                         </table>
+                                        <hr>
+                                        <div class="d-flex justify-content-between">
+                                            <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#tracing">Tracing</button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                data-toggle="modal" data-target="#edit_kapal"
+                                                @click="getKapalEdit(detailKapal.sn)"
+                                            >
+                                                Edit
+                                            </button>
+                                        </div>
                                     </l-popup>
                                 </l-rotated-marker>
                                 <!-- all marker -->
@@ -185,11 +194,21 @@
                                         </table>
                                         <hr>
                                         <div class="d-flex justify-content-between">
-                                            <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#tracing">Tracing</button>
-                                            <button class="btn btn-sm btn-outline-danger" @click="getHistory(data.sn)">Edit</button>
+                                            <button class="btn btn-sm btn-outline-primary" data-toggle="modal" 
+                                                data-target="#tracing" @click="getTanggal(data.sn)"
+                                            >
+                                                Tracing
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                data-toggle="modal" data-target="#edit_kapal"
+                                                @click="getKapalEdit(data.sn)"
+                                            >  
+                                                Edit
+                                            </button>
                                         </div>
                                     </l-popup>
                                 </l-rotated-marker>
+
                                 <!-- rute marker -->
                                 <l-rotated-marker v-for="data in markerRute" :key="data.id"
                                     :lat-lng="[parseFloat(data.Latitude), parseFloat(data.Longitude)]"
@@ -261,11 +280,11 @@
                             <input type="number" class="form-control" style="width: 47%;" v-model="last10day">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" value="filterhowday" checked>
+                            <input v-model="traceOption" class="form-check-input" type="radio" value="lasyhowday" checked>
                             <label class="form-check-label" for="default">
                                 Berapa Hari Terakhir ?
                             </label>
-                            <input type="number" class="form-control" style="width: 47%;" placeholder="10" v-model="filterhowday">
+                            <input type="number" class="form-control" style="width: 47%;" placeholder="10" v-model="lasyhowday">
                         </div>
                         <div class="form-check">
                             <input v-model="traceOption" class="form-check-input" type="radio" value="filterdate" checked>
@@ -281,7 +300,88 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" @click="traceKapal()" data-dismiss="modal">Search</button>
+                        <button type="button" class="btn btn-primary" @click="getRute()" data-dismiss="modal">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- edit kapal modal -->
+        <div class="modal fade" id="edit_kapal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Kapal</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label>Nama Customer</label>
+                                    <!-- <multiselect v-model="editKapal.customer" placeholder="Pilih customer"
+                                        :options="listPerusahaan" :allow-empty="true" :close-on-select="true"
+                                        deselect-label="Klik untuk batal memilih" select-label="Klik untuk memilih" selected-label="Terpilih"
+                                        track-by="id" label="customer_name"
+                                    ></multiselect>
+                                    <pre class="language-json"><code>{{ editKapal.customer }}</code></pre> -->
+                                    <select v-model="editKapal.customer" class="form-control">
+                                        <option value="" disabled>Pilih nama customer</option>
+                                        <option v-for="item in listPerusahaan" :key="item.id" :value="item.id">{{ item.customer_name }}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Vessel ID</label>
+                                    <input v-model="editKapal.id" autocomplete="false" type="text" placeholder="Masukkan vessel ID" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>IMEI</label>
+                                    <input v-model="editKapal.imei" autocomplete="false" type="text" placeholder="Masukkan nomor IMEI" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Categori</label>
+                                    <!-- <multiselect v-model="editKapal.category_id" placeholder="Pilih kategori customer" 
+                                        :options="listTipeCustomer" :allow-empty="true"
+                                        track-by="id" label="name"
+                                    ></multiselect> -->
+                                    <select v-model="editKapal.category_id" class="form-control">
+                                        <option value="" disabled>Pilih categori customer</option>
+                                        <option v-for="item in listTipeCustomer" :key="item.id" :value="item.id">{{ item.name }}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipe Kapal</label>
+                                    <!-- <multiselect v-model="editKapal.type_id" placeholder="Pilih tipe Kapal" 
+                                        :options="listTipeKapal" :allow-empty="true"
+                                        track-by="id" label="name"
+                                    ></multiselect> -->
+                                    <select v-model="editKapal.type_id" class="form-control">
+                                        <option value="" disabled>Pilih tipe kapal</option>
+                                        <option v-for="item in listTipeKapal" :key="item.id" :value="item.id">{{ item.name }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label>ATP Start</label>
+                                    <input v-model="editKapal.atp_start" autocomplete="false" type="date" placeholder="mm/dd/yyyy" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>ATP End</label>
+                                    <input v-model="editKapal.atp_end" autocomplete="false" type="date" placeholder="mm/dd/yyyy" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Device ID/SN</label>
+                                    <input autocomplete="false" type="text" class="form-control" v-model="editKapal.sn" disabled>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nama Kapal</label>
+                                    <input autocomplete="false" type="text" placeholder="Masukkan nama kapal" class="form-control" v-model="editKapal.name">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" @click="updateKapal(editKapal.sn)">Save Changes</button>
                     </div>
                 </div>
             </div>
@@ -296,7 +396,8 @@ import {
     LTileLayer,
     LGeoJson,
     LPopup,
-    LPolyline
+    LPolyline,
+    LControl
 } from 'vue2-leaflet'
 import L from 'leaflet';
 import mapjson from '../assets/seazone.json'
@@ -317,7 +418,8 @@ export default {
         LTileLayer,
         LGeoJson,
         LPopup,
-        LPolyline
+        LPolyline,
+        LControl
     },
     directives: {},
     data() {
@@ -331,23 +433,28 @@ export default {
             markerRute: [],
             CnmKapal: null,
             tglHistori: null,
-            traceOption: null,
-            tgldari: null,
-            tglsampai: null,
             deviceId: null,
             lineLatLon: [],
             color: 'gray',
-            kapalterpilih: null,
+
+            // multiselect options
+            listPerusahaan: [],
+            listTipeCustomer: [],
+            listTipeKapal: [],
+
+            // form tracing kapal
+            traceOption: null,
+            tgldari: null,
+            tglsampai: null,
+            last10day: null,
+            lasyhowday: null,
+
+            // form edit kapal
+            editKapal: {},
+            customer: [],
 
             //data detail kapal
-            Knmperusahaan: null,
-            Knmkapal: null,
-            Kspeed: null,
-            Kimei: null,
-            Katpend: null,
-            Katpstart: null,
-            Klastupdate: null,
-            KtglNow: null,
+            detailKapal: {},
 
             icon: null,
             heading: null,
@@ -355,8 +462,7 @@ export default {
 
             //data maps
             url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            attribution:
-                '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '&copy; <a target="_blank" href="https://kapalpintar.co.id">KapalPintar</a> contributors<span class="mr-2"></span>',
             zoom: 5,
             geojson: null,
             stylegeojson: {
@@ -387,11 +493,13 @@ export default {
     created() {
         this.getJsonMap()
         this.getKapal()
+        this.getLists()
     },
     mounted() {
         this.idakun = this.$session.get("level");
     },
     methods: {
+        // created initiate
         async getJsonMap() {
             this.showloadingBar()
             try {
@@ -400,13 +508,33 @@ export default {
                 console.log(error);
             }
         },
-        async getKapal() {
+        async getKapal(refresh_state = false) {
             try {
                 if (this.$session.get('level') === 'root') {
                     this.getUrl = 'https://track.kapalpintar.co.id/api/kapal_all';
                 } else {
                     this.getUrl = `https://track.kapalpintar.co.id/api/kapal/${this.$session.get('id')}`;
                 }
+                console.log(refresh_state);
+
+                if(refresh_state) {
+                    // declare default center
+                    this.center = [-5.3121961, 116.0877759];
+
+                    // normalize everything - provide default data
+                    this.kapalSingle = [];
+                    this.markerRute = [];
+                    this.lineLatLon = [];
+                    this.icon = null;
+                    this.heading = null;
+                    this.tglHistori = null;
+                    this.dari = null;
+                    this.sampai = null;
+                    this.deviceId = null;
+                    this.CnmKapal = null;
+                    this.detailKapal = {};
+                }
+
                 const response = await axios.get(this.getUrl);
                 this.kapal = response.data;
                 this.markerKapal = response.data;
@@ -415,8 +543,21 @@ export default {
             } catch (error) {
                 console.log(error);
             }
-
         },
+        async getLists() {
+            try {
+                const data_perusahaan = await axios.get('https://track.kapalpintar.co.id/api/data_perusahaan');
+                const kategori_customer = await axios.get('https://track.kapalpintar.co.id/api/kategori_customers');
+                const tipe_kapal = await axios.get('https://track.kapalpintar.co.id/api/tipe_kapal');
+
+                this.listPerusahaan = data_perusahaan.data.results;
+                this.listTipeCustomer = kategori_customer.data.results;
+                this.listTipeKapal = tipe_kapal.data.results;
+            } catch(err) {
+                console.log(err);
+            }
+        },
+
         async filterKapal() {
             this.showloadingBar()
             try {
@@ -458,20 +599,12 @@ export default {
                 this.markerRute = [];
                 this.lineLatLon = [];
                 this.tglHistori = null;
-                this.kapalterpilih = item.name;
                 this.kapalSingle = [parseFloat(item.lat), parseFloat(item.lon)];
                 this.center = [parseFloat(item.lat), parseFloat(item.lon)];
                 this.icon = item.speed ? this.iconOn : this.iconOff;
                 this.heading = item.heading ? parseInt(item.heading) : 0;
                 //popup
-                this.Knmperusahaan = item.customer_name ? item.customer_name : '-';
-                this.Knmkapal = item.name;
-                this.Kspeed = item.speed ? item.speed : 0;
-                this.Kimei = item.imei ? item.imei : '-';
-                this.Katpstart = item.atp_start ? item.atp_start : 0;
-                this.Katpend = item.atp_end ? item.atp_end : 0;
-                this.Klastupdate = item.timestamp;
-                this.KtglNow = item.tglNow;
+                this.detailKapal = item;
 
                 this.getTanggal(item.sn);
             } catch (error) {
@@ -500,19 +633,44 @@ export default {
             try {
                 const response = await axios.get(`https://track.kapalpintar.co.id/api/histori_tgl/${sn}`);
                 this.tglHistori = response.data;
+                this.tgldari = response.data[0].tanggal;
+                this.tglsampai = new Date().toISOString().slice(0, 10);
                 this.deviceId = sn;
                 this.closeloadingBar();
             } catch (error) {
+                this.closeloadingBar();
                 console.log(error);
             }
         },
         async getRute() {
             this.showloadingBar();
             try {
-                const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, {
-                    dari: this.tgldari,
-                    sampai: this.tglsampai
-                });
+                let data = {dari: this.tgldari, sampai: this.tglsampai, jumltitik: 10, tipefilter: null};
+
+                if(this.traceOption == 'last10day') {
+                    data.jmltitik = this.last10day;
+                    data.tipefilter = this.traceOption;
+                } else if(this.traceOption == 'lasyhowday') {
+                    let day = parseInt(this.lasyhowday) ? parseInt(this.lasyhowday) : 10;
+                    console.log(day)
+                    data.dari = new Date(new Date().getTime() - (day * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10);
+                } else if(this.traceOption == 'filterdate') {
+                    data.dari = this.tgldari;
+                    data.sampai = this.tglsampai;
+                    data.tipefilter = this.traceOption;
+                } else {
+                    this.closeloadingBar();
+                    this.$swal.fire({
+                        title: 'Pilih Filter',
+                        text: 'Silahkan pilih filter terlebih dahulu',
+                        type: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+
+                    return;
+                }
+
+                const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, data);
                 this.kapalSingle = [];
                 this.markerRute = response.data['histori'];
                 this.lineLatLon = response.data['polyline'];
@@ -521,6 +679,61 @@ export default {
                 console.log(error);
             }
         },
+
+        // edit kapal
+        async getKapalEdit(sn) {
+            try {
+                this.showloadingBar();
+
+                const kapal_by_sn = await axios.get(`https://track.kapalpintar.co.id/api/kapal_sn/${sn}`);
+                // reconfig editKapal properties
+                this.editKapal = kapal_by_sn.data[0];
+                this.editKapal.tipeForm = 'Edit';
+                if(this.editKapal.atp_start) this.editKapal.atp_start = this.formatISODate(this.editKapal.atp_start);
+                if(this.editKapal.atp_end) this.editKapal.atp_end = this.formatISODate(this.editKapal.atp_end);
+
+                const tipe_kapal = await axios.get(`https://track.kapalpintar.co.id/api/tipe_kapal/${this.editKapal.type_id}`);
+                this.tipeKapal = tipe_kapal.data.results[0];
+                const customer = await axios.get(`https://track.kapalpintar.co.id/api/perusahaan/${this.editKapal.customer}`);
+                this.customer = customer.data.results[0];
+
+                this.closeloadingBar();
+            } catch(err) {
+                this.closeloadingBar()
+                console.log(err)
+            }
+        },
+        async updateKapal(sn) {
+            if(!sn) {
+                this.$swal.fire({
+                    title: 'Kapal tidak ditemukan',
+                    text: 'Silahkan coba lagi',
+                    type: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            try {
+                this.showloadingBar();
+
+                this.editKapal.id_customer = this.editKapal.customer;
+                await axios.put(`https://track.kapalpintar.co.id/api/updatepemilikkapal/${sn}`, this.editKapal);
+
+                this.CnmKapal = this.editKapal.name;
+                await this.cariNamaKapal();
+                this.$swal.fire({
+                    title: 'Berhasil',
+                    text: 'Data berhasil diubah',
+                    type: 'success',
+                    confirmButtonText: 'OK'
+                });
+            } catch(err) {
+                this.closeloadingBar();
+                console.log(err);
+            }
+        },
+
         showloadingBar() {
             this.$swal.fire({
                 html: "<img src='images/loading-bar.gif' style='width: 50px;'/><p>Loading...</p>",
@@ -538,7 +751,7 @@ export default {
         formatISODate(date) {
             let d = new Date(date);
 
-            return d.toLocaleDateString('id-ID').replaceAll('/', '-');
+            return d.toISOString().split('T')[0];
         }
     },
 };
@@ -586,5 +799,12 @@ li .iq-email-title{
     border-left: 1px solid grey;
     padding-left: 10px;
     border-left-style: dashed;
+}
+.filtertrack {
+    padding: 10px;
+    color: #000;
+    background: #fff;
+    border: 2px solid #89a9b2;
+    border-radius: 3px;
 }
 </style>
