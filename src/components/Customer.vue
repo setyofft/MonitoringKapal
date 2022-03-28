@@ -16,7 +16,7 @@
                                 Tambah
                             </button>
                         </div>
-                        <div class="iq-card-body pl-2 pr-0">
+                        <div class="iq-card-body pl-2 pr-0 pt-2 pb-0">
                             <div class="form-group ml-1 mr-2">
                                 <input type="text" class="form-control" 
                                     style="padding-right:30px"
@@ -29,15 +29,8 @@
                                 </a>
                             </div>
                             <div class="row" v-if="perusahaan">
-                                <div class="col-lg-4 pt-1">
-                                    <button type="button" 
-                                        class="btn btn-sm btn-outline-dark mr-2"
-                                        @click="perusahaan = kapal = liCustomerActive = null"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                                <div class="col-lg-8 pt-1 text-right mb-1">
+                                <div class="col-lg-4 pt-1"></div>
+                                <div class="col-lg-8 text-right mb-m10">
                                     <button type="button" 
                                         class="btn btn-sm btn-outline-success mr-2"
                                         data-toggle="modal" data-target="#form_customer"
@@ -51,11 +44,17 @@
                                     >
                                         Hapus
                                     </button>
+                                    <button type="button" 
+                                        class="btn btn-sm btn-outline-dark mr-2"
+                                        @click="perusahaan = kapal = liCustomerActive = null"
+                                    >
+                                        Cancel
+                                    </button>
                                 </div>
                             </div>
                             <hr class="mb-2"/>
                             <ul class="doctors-lists m-0 p-0 iq-email-sender-list" style="height: 56vh;">
-                                <li class="d-flex mb-4 align-items-center pr-1"
+                                <li class="set-list d-flex mb-2 align-items-center pr-1"
                                     v-for="item in customer" 
                                     :key="item.id" 
                                     :class="{'active-li': item.id === liCustomerActive}"
@@ -104,14 +103,14 @@
                                         <img src="images/user/111.png" alt="profile-img" class="avatar-130 img-fluid">
                                     </div>
                                     <div class="text-center mt-3">
-                                        <h5>{{ perusahaan.name }}</h5>
+                                        <h5>{{ perusahaan.customer_name }}</h5>
                                         <p :class="{
-                                            'text-danger': !akun || akun.status != 'aktif',
-                                            'text-primary': akun && akun.status == 'aktif'
+                                            'text-danger': !akun.length,
+                                            'text-primary': akun.length
                                         }">
-                                            {{ !akun ? '-' : akun.status }}
+                                            {{ !akun.length ? '-' : akun.status }}
                                         </p>
-                                        <p v-if="!akun" class="text-danger">Customer belum mempunyai akun! 
+                                        <p v-if="!akun.length" class="text-danger">Customer belum mempunyai akun! 
                                             <button data-toggle="modal" data-target="#form_akun"
                                                 data-backdrop="static" data-keyboard="false"
                                                 class="btn btn-sm btn-outline-danger"
@@ -120,7 +119,7 @@
                                                 Create !
                                             </button>
                                         </p>
-                                        <p v-if="akun" class="text-primary">Customer sudah mempunyai akun! 
+                                        <p v-if="akun.length" class="text-primary">Customer sudah mempunyai akun! 
                                             <button data-toggle="modal" data-target="#form_akun"
                                                 data-backdrop="static" data-keyboard="false"
                                                 class="btn btn-sm btn-outline-primary"
@@ -992,5 +991,13 @@ export default {
     position: absolute;
     right: 3%;
     bottom: 31.7%;
+}
+.mb-m10 {
+    margin-bottom: -10px;
+}
+.set-list {
+    padding: 10px 0 10px 10px;
+    border-bottom: 1px solid #efefef;
+    border-bottom-style: dashed;
 }
 </style>

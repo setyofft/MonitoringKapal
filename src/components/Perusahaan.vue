@@ -22,7 +22,7 @@
                                 <a class="search-link mod" href="#"><i class="ri-search-line"></i></a>
                             </div>
                             <ul class="doctors-lists m-0 p-0 iq-email-sender-list" style="height: 56vh;">
-                                <li class="d-flex mb-4 align-items-center pr-1"
+                                <li class="d-flex mb-2 align-items-center pr-1 set-list"
                                     v-for="(item, key) in kapal" 
                                     :key="key" 
                                     :class="{'active-li': item.id === selectedKapal}"
@@ -75,7 +75,7 @@
                                 />
                                 <l-rotated-marker v-if="kapalSingle.length" :lat-lng="kapalSingle" :icon="icon"
                                     :rotationAngle="heading">
-                                    <l-popup>
+                                    <l-popup class="map-popup">
                                         <table>
                                             <tr>
                                                 <th width="50%">Nama Perusahaan</th>
@@ -142,7 +142,7 @@
                                     :lat-lng="[parseFloat(data.lat), parseFloat(data.lon)]"
                                     :icon="!data.timestamp || data.timestamp < data.tglNow ? iconOff : iconOn"
                                     :rotationAngle="data.heading ? parseInt(data.heading) : 0">
-                                    <l-popup>
+                                    <l-popup class="map-popup">
                                         <table>
                                             <tr>
                                                 <th width="50%">Nama Perusahaan</th>
@@ -796,5 +796,13 @@ li .iq-email-title{
     background: #fff;
     border: 2px solid #89a9b2;
     border-radius: 3px;
+}
+.map-popup {
+    min-width: 300px;
+}
+.set-list {
+    padding: 10px 0 10px 10px;
+    border-bottom: 1px solid #efefef;
+    border-bottom-style: dashed;
 }
 </style>

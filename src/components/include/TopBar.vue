@@ -242,6 +242,6 @@ export default {
   font-size: 25px;
 }
 .modal-backdrop {
-  z-index: -1;
+  z-index: 1040;
 }
 </style>
