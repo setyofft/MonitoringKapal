@@ -23,8 +23,8 @@
                             </div>
                             <ul class="doctors-lists m-0 p-0 iq-email-sender-list" style="height: 56vh;">
                                 <li class="d-flex mb-4 align-items-center pr-1"
-                                    v-for="item in kapal" 
-                                    :key="item.sn" 
+                                    v-for="(item, key) in kapal" 
+                                    :key="key" 
                                     :class="{'active-li': item.id === selectedKapal}"
                                     @click="activeListKapal(item.id)"
                                 >
@@ -138,9 +138,9 @@
                                     </l-popup>
                                 </l-rotated-marker>
                                 <!-- all marker -->
-                                <l-rotated-marker v-for="data in markerKapal" :key="data.sn"
+                                <l-rotated-marker v-for="(data, key) in markerKapal" :key="key"
                                     :lat-lng="[parseFloat(data.lat), parseFloat(data.lon)]"
-                                    :icon="data.speed ? iconOn: iconOff"
+                                    :icon="!data.timestamp || data.timestamp < data.tglNow ? iconOff : iconOn"
                                     :rotationAngle="data.heading ? parseInt(data.heading) : 0">
                                     <l-popup>
                                         <table>
@@ -210,7 +210,7 @@
                                 </l-rotated-marker>
 
                                 <!-- rute marker -->
-                                <l-rotated-marker v-for="data in markerRute" :key="data.id"
+                                <l-rotated-marker v-for="(data, key) in markerRute" :key="key"
                                     :lat-lng="[parseFloat(data.Latitude), parseFloat(data.Longitude)]"
                                     :icon="data.kecepatan ? iconOn: iconOff"
                                     :rotationAngle="data.Direction ? parseInt(data.Direction) : 0">
@@ -273,22 +273,22 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" value="last10day" checked>
-                            <label class="form-check-label" for="default">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="last10day" value="last10day" checked>
+                            <label class="form-check-label" for="last10day">
                                 Berapa Titik Lokasi Terakhir
                             </label>
                             <input type="number" class="form-control" style="width: 47%;" v-model="last10day">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" value="lasyhowday" checked>
-                            <label class="form-check-label" for="default">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="lasyhowday" value="lasyhowday" checked>
+                            <label class="form-check-label" for="lasyhowday">
                                 Berapa Hari Terakhir ?
                             </label>
                             <input type="number" class="form-control" style="width: 47%;" placeholder="10" v-model="lasyhowday">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" value="filterdate" checked>
-                            <label class="form-check-label" for="default">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdate" value="filterdate" checked>
+                            <label class="form-check-label" for="filterdate">
                                 Filter Antara Tanggal
                             </label>
                             <div class="d-flex justify-content-between align-items-center">
@@ -520,14 +520,9 @@ export default {
                 if(refresh_state) {
                     this.heading = this.tglHistori = this.dari = this.sampai = this.deviceId = this.CnmKapal =  this.selectedKapal = null;
                     this.center = [-5.3121961, 116.0877759];
-                    // this.markerKapal = null;
-                    // this.markerKapal = [];
-                    // this.markerRute.length = 0;
-                    // this.lineLatLon.length = 0;
-                    // this.markerRute = [];
-                    // this.lineLatLon = [];
-                    // this.detailKapal = {};
-
+                    this.markerKapal = [];
+                    this.markerRute = [];
+                    this.lineLatLon = [];
                 }
 
                 const response = await axios.get(this.getUrl);
@@ -596,7 +591,7 @@ export default {
                 this.tglHistori = null;
                 this.kapalSingle = [parseFloat(item.lat), parseFloat(item.lon)];
                 this.center = [parseFloat(item.lat), parseFloat(item.lon)];
-                this.icon = item.speed ? this.iconOn : this.iconOff;
+                this.icon = !item.timestamp || item.timestamp < item.tglNow ? this.iconOff : this.iconOn;
                 this.heading = item.heading ? parseInt(item.heading) : 0;
                 //popup
                 this.detailKapal = item;
@@ -647,7 +642,6 @@ export default {
                     data.tipefilter = this.traceOption;
                 } else if(this.traceOption == 'lasyhowday') {
                     let day = parseInt(this.lasyhowday) ? parseInt(this.lasyhowday) : 10;
-                    console.log(day)
                     data.dari = new Date(new Date().getTime() - (day * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10);
                 } else if(this.traceOption == 'filterdate') {
                     data.dari = this.tgldari;

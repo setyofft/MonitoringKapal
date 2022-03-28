@@ -250,7 +250,7 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="javascript:void(0)">
+                                            <a href="javascript:void(0)" @click="formKapal = kapal[key]; deleteKapal();">
                                                 <i class="ri-delete-bin-2-line"></i>
                                             </a>
                                         </li>
@@ -868,7 +868,7 @@ export default {
                 await axios.put(`https://track.kapalpintar.co.id/api/updatepemilikkapal/${this.formKapal.sn}`, this.formKapal);
 
                 this.formKapal = {};
-                this.getSingleCustomer(this.perusahaan.id);
+                await this.getSingleCustomer(this.perusahaan.id);
                 this.$swal.fire({
                     title: 'Berhasil',
                     text: 'Data kapal berhasil diedit',
@@ -879,6 +879,38 @@ export default {
                 this.closeloadingBar();
                 console.log(err);
             }
+        },
+        async deleteKapal() {
+            this.$swal.fire({
+                title: 'Hapus data kapal',
+                text: 'Apakah anda yakin ingin menghapus data kapal ini?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!'
+            }).then(async (result) => {
+                if(result.value) {
+                    try {
+                        this.showloadingBar();
+                        this.formKapal.tipeForm = 'Delete';
+                        this.formKapal.id_customer = null;
+
+                        await axios.put(`https://track.kapalpintar.co.id/api/updatepemilikkapal/${this.formKapal.sn}`, this.formKapal);
+                        this.formKapal = {};
+                        await this.getSingleCustomer(this.perusahaan.id);
+                        this.$swal.fire({
+                            title: 'Berhasil',
+                            text: 'Data kapal berhasil dihapus',
+                            type: 'success',
+                            confirmButtonText: 'Ok'
+                        });
+                    } catch (err) {
+                        this.closeloadingBar();
+                        console.log(err);
+                    }
+                }
+            })
         },
 
         // trait
