@@ -10,6 +10,7 @@ import 'leaflet/dist/leaflet.css';
 import LControlFullscreen from 'vue2-leaflet-fullscreen';
 import Vue2LeafletRotatedMarker from 'vue2-leaflet-rotatedmarker'
 import Multiselect from 'vue-multiselect';
+import JsonExcel from "vue-json-excel";
 
 import Sign from './components/Sign.vue'
 import Perusahaan from './components/Perusahaan.vue'
@@ -27,6 +28,7 @@ Vue.use(VueSession)
 Vue.component('l-control-fullscreen', LControlFullscreen);
 Vue.component('l-rotated-marker', Vue2LeafletRotatedMarker);
 Vue.component('multiselect', Multiselect);
+Vue.component('downloadExcel', JsonExcel);
 
 Vue.config.productionTip = false
 

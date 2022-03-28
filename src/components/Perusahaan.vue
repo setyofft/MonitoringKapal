@@ -58,16 +58,28 @@
                         <div class="iq-card-body p-0">
                             <l-map class="map" style="height: 82vh; z-index: 0;" :zoom="zoom" :center="center">
                                 <l-control-fullscreen />
+                                <!-- tombol refresh data -->
                                 <l-control position="topleft" v-if="kapalSingle.length || lineLatLon.length">
                                     <a href="javascript:void(0)" title="Back All Kapal" class="filtertrack" @click="getKapal(true)">
                                         <i class="ri-refresh-fill" style="font-size: 15px;"></i>
                                     </a>
                                 </l-control>
+                                <!-- tombol show modal tracking -->
                                 <l-control position="topright" v-if="kapalSingle.length">
                                     <a href="javascript:void(0)" title="Filter" data-toggle="modal" data-target="#tracing" class="filtertrack">
                                         <i class="ri-filter-2-fill"></i>
                                     </a>
                                 </l-control>
+                                <!-- tombol download data tracking -->
+                                <l-control position="bottomleft" v-if="markerRute.length">
+                                    <download-excel class="filtertrack" style="cursor: pointer"
+                                        :data="markerRute" name="analisatracking.xls"
+                                    >
+                                        <i class="ri-file-download-fill" style="font-size: 15px;"></i>
+                                        Download Analisa Tracking
+                                    </download-excel>
+                                </l-control>
+
                                 <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
                                 <l-geo-json
                                     :geojson="geojson" 
@@ -120,7 +132,7 @@
                                             <tr>
                                                 <th width="50%">Last Update</th>
                                                 <th>:</th>
-                                                <td :class="detailKapal.timestamp < detailKapal.tglNow ? 'text-danger' : '' ">
+                                                <td :class="(detailKapal.timestamp < detailKapal.tglNow) ? 'text-danger' : ''">
                                                     {{detailKapal.timestamp ? detailKapal.timestamp : '-'}}
                                                 </td>
                                             </tr>
@@ -273,21 +285,21 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="last10day" value="last10day" checked>
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="last10day" value="last10day">
                             <label class="form-check-label" for="last10day">
                                 Berapa Titik Lokasi Terakhir
                             </label>
                             <input type="number" class="form-control" style="width: 47%;" v-model="last10day">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="lasyhowday" value="lasyhowday" checked>
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="lasyhowday" value="lasyhowday">
                             <label class="form-check-label" for="lasyhowday">
                                 Berapa Hari Terakhir ?
                             </label>
                             <input type="number" class="form-control" style="width: 47%;" placeholder="10" v-model="lasyhowday">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdate" value="filterdate" checked>
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdate" value="filterdate">
                             <label class="form-check-label" for="filterdate">
                                 Filter Antara Tanggal
                             </label>
@@ -325,7 +337,7 @@
                                     <pre class="language-json"><code>{{ editKapal.customer }}</code></pre> -->
                                     <select v-model="editKapal.customer" class="form-control">
                                         <option value="" disabled>Pilih nama customer</option>
-                                        <option v-for="item in listPerusahaan" :key="item.id" :value="item.id">{{ item.customer_name }}</option>
+                                        <option v-for="(item, key) in listPerusahaan" :key="key" :value="item.id">{{ item.customer_name }}</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -344,7 +356,7 @@
                                     ></multiselect> -->
                                     <select v-model="editKapal.category_id" class="form-control">
                                         <option value="" disabled>Pilih categori customer</option>
-                                        <option v-for="item in listTipeCustomer" :key="item.id" :value="item.id">{{ item.name }}</option>
+                                        <option v-for="(item, key) in listTipeCustomer" :key="key" :value="item.id">{{ item.name }}</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -355,7 +367,7 @@
                                     ></multiselect> -->
                                     <select v-model="editKapal.type_id" class="form-control">
                                         <option value="" disabled>Pilih tipe kapal</option>
-                                        <option v-for="item in listTipeKapal" :key="item.id" :value="item.id">{{ item.name }}</option>
+                                        <option v-for="(item, key) in listTipeKapal" :key="key" :value="item.id">{{ item.name }}</option>
                                     </select>
                                 </div>
                             </div>
