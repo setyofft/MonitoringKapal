@@ -59,19 +59,31 @@
                             <l-map class="map" style="height: 82vh; z-index: 0;" :zoom="zoom" :center="center">
                                 <l-control-fullscreen />
                                 <!-- tombol refresh data -->
-                                <l-control position="topleft" >
+                                <l-control position="topleft" 
+                                    :class="{
+                                        'hide-me': !stateRefresh,
+                                        'leaflet-control': true
+                                    }"
+                                >
                                     <a href="javascript:void(0)" title="Back All Kapal" class="filtertrack" @click="getKapal(true)">
                                         <i class="ri-refresh-fill" style="font-size: 15px;"></i>
                                     </a>
                                 </l-control>
                                 <!-- tombol show modal tracking -->
-                                <l-control position="topright">
+                                <l-control position="topright"
+                                    :class="{
+                                        'hide-me': !stateTrack,
+                                        'leaflet-control': true
+                                    }"
+                                >
                                     <a href="javascript:void(0)" title="Filter" data-toggle="modal" data-target="#tracing" class="filtertrack">
                                         <i class="ri-filter-2-fill"></i>
                                     </a>
                                 </l-control>
                                 <!-- tombol download data tracking -->
-                                <l-control position="bottomleft">
+                                <l-control position="bottomleft"
+                                    :class="{'hide-me': !stateDownload, 'leaflet-control': true}"
+                                >
                                     <download-excel class="filtertrack" style="cursor: pointer"
                                         :data="markerRute" name="analisatracking.xls"
                                     >
@@ -102,12 +114,12 @@
                                             <tr>
                                                 <th width="50%">Vessel ID</th>
                                                 <th>:</th>
-                                                <th>{{detailKapal.id ? detailKapal.id : '-'}}</th>
+                                                <td>{{detailKapal.id ? detailKapal.id : '-'}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">SN</th>
                                                 <th>:</th>
-                                                <th>{{detailKapal.sn ? detailKapal.sn : '-'}}</th>
+                                                <td>{{detailKapal.sn ? detailKapal.sn : '-'}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Speed</th>
@@ -117,17 +129,17 @@
                                             <tr>
                                                 <th width="50%">Heading</th>
                                                 <th>:</th>
-                                                <th>{{detailKapal.heading ? detailKapal.heading : '-'}}</th>
+                                                <td>{{detailKapal.heading ? detailKapal.heading : '-'}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Latitude / Longitude</th>
                                                 <th>:</th>
-                                                <th>{{detailKapal.lat +' / '+ detailKapal.lon}}</th>
+                                                <td>{{detailKapal.lat +' / '+ detailKapal.lon}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Atp Start / Atp End</th>
                                                 <th>:</th>
-                                                <th>{{formatISODate(detailKapal.atp_start) +' / '+ formatISODate(detailKapal.atp_end)}}</th>
+                                                <td>{{formatISODate(detailKapal.atp_start) +' / '+ formatISODate(detailKapal.atp_end)}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Last Update</th>
@@ -139,7 +151,11 @@
                                         </table>
                                         <hr>
                                         <div class="d-flex justify-content-between">
-                                            <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#tracing">Tracing</button>
+                                            <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#tracing"
+                                                @click="getTanggal(detailKapal.sn)"
+                                            >
+                                                Tracing
+                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" 
                                                 data-toggle="modal" data-target="#edit_kapal"
                                                 @click="getKapalEdit(detailKapal.sn)"
@@ -169,12 +185,12 @@
                                             <tr>
                                                 <th width="50%">Vessel ID</th>
                                                 <th>:</th>
-                                                <th>{{data.id ? data.id : '-'}}</th>
+                                                <td>{{data.id ? data.id : '-'}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">SN</th>
                                                 <th>:</th>
-                                                <th>{{data.sn ? data.sn : '-'}}</th>
+                                                <td>{{data.sn ? data.sn : '-'}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Speed</th>
@@ -184,22 +200,22 @@
                                             <tr>
                                                 <th width="50%">Heading</th>
                                                 <th>:</th>
-                                                <th>{{data.heading ? data.heading : '-'}}</th>
+                                                <td>{{data.heading ? data.heading : '-'}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Latitude / Longitude</th>
                                                 <th>:</th>
-                                                <th>{{data.lat +' / '+ data.lon}}</th>
+                                                <td>{{data.lat +' / '+ data.lon}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Atp Start / Atp End</th>
                                                 <th>:</th>
-                                                <th>{{formatISODate(data.atp_start) +' / '+ formatISODate(data.atp_end)}}</th>
+                                                <td>{{formatISODate(data.atp_start) +' / '+ formatISODate(data.atp_end)}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Last Update</th>
                                                 <th>:</th>
-                                                <td :class="data.timestamp < data.tglNow ? 'text-danger' : '' ">
+                                                <td :class="data.timestamp < data.tglNow ? 'text-danger' : ''">
                                                     {{data.timestamp ? data.timestamp : '-'}}
                                                 </td>
                                             </tr>
@@ -285,21 +301,21 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdata" value="last10day">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="last10day" value="last10day">
                             <label class="form-check-label" for="last10day">
                                 Berapa Titik Lokasi Terakhir
                             </label>
                             <input type="number" class="form-control" style="width: 47%;" v-model="last10day">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdata" value="lasyhowday">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="lasyhowday" value="lasyhowday">
                             <label class="form-check-label" for="lasyhowday">
                                 Berapa Hari Terakhir ?
                             </label>
                             <input type="number" class="form-control" style="width: 47%;" placeholder="10" v-model="lasyhowday">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdata" value="filterdate">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdate" value="filterdate">
                             <label class="form-check-label" for="filterdate">
                                 Filter Antara Tanggal
                             </label>
@@ -449,6 +465,11 @@ export default {
             lineLatLon: [],
             color: 'gray',
 
+            // state l-control visibility
+            stateRefresh: false,
+            stateTrack: false,
+            stateDownload: false,
+
             // multiselect options
             listPerusahaan: [],
             listTipeCustomer: [],
@@ -531,6 +552,7 @@ export default {
 
                 if(refresh_state) {
                     this.heading = this.tglHistori = this.dari = this.sampai = this.deviceId = this.CnmKapal =  this.selectedKapal = null;
+                    this.stateRefresh = this.stateTrack = this.stateDownload = false;
                     this.center = [-5.3121961, 116.0877759];
                     this.markerKapal = [];
                     this.markerRute = [];
@@ -601,6 +623,8 @@ export default {
                 this.markerRute = [];
                 this.lineLatLon = [];
                 this.tglHistori = null;
+
+                this.stateRefresh = this.stateTrack = true;
                 this.kapalSingle = [parseFloat(item.lat), parseFloat(item.lon)];
                 this.center = [parseFloat(item.lat), parseFloat(item.lon)];
                 this.icon = !item.timestamp || item.timestamp < item.tglNow ? this.iconOff : this.iconOn;
@@ -671,8 +695,9 @@ export default {
                     return;
                 }
 
+                this.stateRefresh = this.stateTrack = this.stateDownload = true;
+
                 const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, data);
-                console.log(this.deviceId);
                 this.markerKapal = [];
                 this.kapalSingle = [];
                 this.markerRute = response.data['histori'];
@@ -804,5 +829,8 @@ li .iq-email-title{
     padding: 10px 0 10px 10px;
     border-bottom: 1px solid #efefef;
     border-bottom-style: dashed;
+}
+.hide-me {
+    visibility: hidden;
 }
 </style>
