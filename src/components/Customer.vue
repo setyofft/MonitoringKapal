@@ -4,7 +4,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-lg-3">
-                    <div class="iq-card iq-card-stretch">
+                    <div class="iq-card iq-card-block iq-card-stretch iq-card-height">
                         <div class="iq-card-header d-flex justify-content-between">
                             <div class="iq-header-title">
                                 <h4 class="card-title">Customers</h4>
@@ -22,9 +22,9 @@
                                     style="padding-right:30px"
                                     placeholder="Cari Nama Customer" 
                                     v-model="CnmCustomer"
-                                    @keyup="searchCustomer"
+                                    @keyup="searchCustomer()"
                                 >
-                                <a class="search-link mod" href="#">
+                                <a class="search-link mod" href="#" @click="searchCustomer()">
                                     <i class="ri-search-line"></i>
                                 </a>
                             </div>
@@ -975,7 +975,7 @@ export default {
 .mod{
     position: absolute;
     right: 30px;
-    top: 12.5%;
+    top: 10.3%;
     font-size: 15pt;
 }
 .setShow {

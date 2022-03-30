@@ -15,11 +15,11 @@
                                 </a>
                             </span>
                         </div>
-                        <div class="iq-card-body pl-2 pr-0">
+                        <div class="iq-card-body pl-2 pr-0 pb-0">
                             <div class="form-group ml-1 mr-2">
                                 <input type="text" class="form-control" style="padding-right:30px"
                                     placeholder="Cari Nama Kapal" @keyup="cariNamaKapal" v-model="CnmKapal">
-                                <a class="search-link mod" href="#"><i class="ri-search-line"></i></a>
+                                <a class="search-link mod" href="#" @click="cariNamaKapal"><i class="ri-search-line"></i></a>
                             </div>
                             <ul class="doctors-lists m-0 p-0 iq-email-sender-list" style="height: 56vh;">
                                 <li class="d-flex mb-2 align-items-center pr-1 set-list"
@@ -648,8 +648,7 @@ export default {
             this.showloadingBar();
             try {
                 let data = {dari: this.tgldari, sampai: this.tglsampai, jumltitik: 10, tipefilter: null};
-                
-                
+
                 if(this.traceOption == 'last10day') {
                     data.jmltitik = this.last10day;
                     data.tipefilter = this.traceOption;
@@ -783,21 +782,8 @@ li .iq-email-title{
 .mod{
     position: absolute;
     right: 30px;
-    top: 12.5%;
+    top: 12.3%;
     font-size: 15pt;
-}
-.popFilter{
-    position: absolute;
-    z-index: 9999;
-    background: white;
-    border-radius: 15px;
-    width: 50%;
-    margin-top: 10px;
-    margin-left: 25%;
-    padding: 5px;
-    -webkit-box-shadow: 0px 0px 25px 0px rgb(45 69 95 / 10%);
-    -moz-box-shadow: 0px 0px 25px 0px rgba(45, 69, 95, 0.1);
-    box-shadow: 0px 0px 25px 0px rgb(45 69 95 / 10%);
 }
 .set-li {
     border-left: 1px solid grey;
