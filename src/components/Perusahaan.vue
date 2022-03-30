@@ -59,19 +59,19 @@
                             <l-map class="map" style="height: 82vh; z-index: 0;" :zoom="zoom" :center="center">
                                 <l-control-fullscreen />
                                 <!-- tombol refresh data -->
-                                <l-control position="topleft" v-if="kapalSingle.length || lineLatLon.length">
+                                <l-control position="topleft" >
                                     <a href="javascript:void(0)" title="Back All Kapal" class="filtertrack" @click="getKapal(true)">
                                         <i class="ri-refresh-fill" style="font-size: 15px;"></i>
                                     </a>
                                 </l-control>
                                 <!-- tombol show modal tracking -->
-                                <l-control position="topright" v-if="kapalSingle.length">
+                                <l-control position="topright">
                                     <a href="javascript:void(0)" title="Filter" data-toggle="modal" data-target="#tracing" class="filtertrack">
                                         <i class="ri-filter-2-fill"></i>
                                     </a>
                                 </l-control>
                                 <!-- tombol download data tracking -->
-                                <l-control position="bottomleft" v-if="markerRute.length">
+                                <l-control position="bottomleft">
                                     <download-excel class="filtertrack" style="cursor: pointer"
                                         :data="markerRute" name="analisatracking.xls"
                                     >
@@ -222,7 +222,7 @@
                                 </l-rotated-marker>
 
                                 <!-- rute marker -->
-                                <l-rotated-marker v-for="(data, key) in markerRute" :key="key"
+                                <l-rotated-marker v-for="data in markerRute" :key="data.id"
                                     :lat-lng="[parseFloat(data.Latitude), parseFloat(data.Longitude)]"
                                     :icon="data.kecepatan ? iconOn: iconOff"
                                     :rotationAngle="data.Direction ? parseInt(data.Direction) : 0">
@@ -285,21 +285,21 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="last10day" value="last10day">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdata" value="last10day">
                             <label class="form-check-label" for="last10day">
                                 Berapa Titik Lokasi Terakhir
                             </label>
                             <input type="number" class="form-control" style="width: 47%;" v-model="last10day">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="lasyhowday" value="lasyhowday">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdata" value="lasyhowday">
                             <label class="form-check-label" for="lasyhowday">
                                 Berapa Hari Terakhir ?
                             </label>
                             <input type="number" class="form-control" style="width: 47%;" placeholder="10" v-model="lasyhowday">
                         </div>
                         <div class="form-check">
-                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdate" value="filterdate">
+                            <input v-model="traceOption" class="form-check-input" type="radio" id="filterdata" value="filterdate">
                             <label class="form-check-label" for="filterdate">
                                 Filter Antara Tanggal
                             </label>
@@ -648,7 +648,8 @@ export default {
             this.showloadingBar();
             try {
                 let data = {dari: this.tgldari, sampai: this.tglsampai, jumltitik: 10, tipefilter: null};
-
+                
+                
                 if(this.traceOption == 'last10day') {
                     data.jmltitik = this.last10day;
                     data.tipefilter = this.traceOption;
@@ -672,6 +673,7 @@ export default {
                 }
 
                 const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, data);
+                console.log(this.deviceId);
                 this.markerKapal = [];
                 this.kapalSingle = [];
                 this.markerRute = response.data['histori'];
