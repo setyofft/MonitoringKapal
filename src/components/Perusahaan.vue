@@ -263,19 +263,19 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-check">
+                        <div class="form-check mb-3">
                             <input v-model="filter" class="form-check-input" type="radio" id="default" value="default" checked>
                             <label class="form-check-label" for="default">
                                 Order Default
                             </label>
                         </div>
-                        <div class="form-check">
+                        <div class="form-check mb-3">
                             <input v-model="filter" class="form-check-input" type="radio" id="bynmkapal" value="bynmkapal">
                             <label class="form-check-label" for="bynmkapal">
                                 Order By Nama Kapal
                             </label>
                         </div>
-                        <div class="form-check">
+                        <div class="form-check mb-3">
                             <input v-model="filter" class="form-check-input" type="radio" id="bylastposisi" value="bylastposisi">
                             <label class="form-check-label" for="bylastposisi">
                                 Order By Last Position
@@ -345,16 +345,11 @@
                             <div class="col-lg-6">
                                 <div class="form-group">
                                     <label>Nama Customer</label>
-                                    <!-- <multiselect v-model="editKapal.customer" placeholder="Pilih customer"
+                                    <multiselect v-model="customer" placeholder="Pilih customer"
                                         :options="listPerusahaan" :allow-empty="true" :close-on-select="true"
                                         deselect-label="Klik untuk batal memilih" select-label="Klik untuk memilih" selected-label="Terpilih"
                                         track-by="id" label="customer_name"
                                     ></multiselect>
-                                    <pre class="language-json"><code>{{ editKapal.customer }}</code></pre> -->
-                                    <select v-model="editKapal.customer" class="form-control">
-                                        <option value="" disabled>Pilih nama customer</option>
-                                        <option v-for="(item, key) in listPerusahaan" :key="key" :value="item.id">{{ item.customer_name }}</option>
-                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label>Vessel ID</label>
@@ -366,25 +361,19 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Categori</label>
-                                    <!-- <multiselect v-model="editKapal.category_id" placeholder="Pilih kategori customer" 
-                                        :options="listTipeCustomer" :allow-empty="true"
+                                    <multiselect v-model="kategoriCustomer" placeholder="Pilih kategori customer" 
+                                        :options="listTipeCustomer" :allow-empty="true" :close-on-select="true"
+                                        deselect-label="Klik untuk batal memilih" select-label="Klik untuk memilih" selected-label="Terpilih"
                                         track-by="id" label="name"
-                                    ></multiselect> -->
-                                    <select v-model="editKapal.category_id" class="form-control">
-                                        <option value="" disabled>Pilih categori customer</option>
-                                        <option v-for="(item, key) in listTipeCustomer" :key="key" :value="item.id">{{ item.name }}</option>
-                                    </select>
+                                    ></multiselect>
                                 </div>
                                 <div class="form-group">
                                     <label>Tipe Kapal</label>
-                                    <!-- <multiselect v-model="editKapal.type_id" placeholder="Pilih tipe Kapal" 
-                                        :options="listTipeKapal" :allow-empty="true"
+                                    <multiselect v-model="tipeKapal" placeholder="Pilih tipe Kapal" 
+                                        :options="listTipeKapal" :allow-empty="true" :close-on-select="true"
+                                        deselect-label="Klik untuk batal memilih" select-label="Klik untuk memilih" selected-label="Terpilih"
                                         track-by="id" label="name"
-                                    ></multiselect> -->
-                                    <select v-model="editKapal.type_id" class="form-control">
-                                        <option value="" disabled>Pilih tipe kapal</option>
-                                        <option v-for="(item, key) in listTipeKapal" :key="key" :value="item.id">{{ item.name }}</option>
-                                    </select>
+                                    ></multiselect>
                                 </div>
                             </div>
                             <div class="col-lg-6">
@@ -485,6 +474,8 @@ export default {
             // form edit kapal
             editKapal: {},
             customer: [],
+            tipeKapal: [],
+            kategoriCustomer: [],
 
             //data detail kapal
             detailKapal: {},
@@ -720,10 +711,18 @@ export default {
                 if(this.editKapal.atp_start) this.editKapal.atp_start = this.formatISODate(this.editKapal.atp_start);
                 if(this.editKapal.atp_end) this.editKapal.atp_end = this.formatISODate(this.editKapal.atp_end);
 
-                const tipe_kapal = await axios.get(`https://track.kapalpintar.co.id/api/tipe_kapal/${this.editKapal.type_id}`);
-                this.tipeKapal = tipe_kapal.data.results[0];
-                const customer = await axios.get(`https://track.kapalpintar.co.id/api/perusahaan/${this.editKapal.customer}`);
-                this.customer = customer.data.results[0];
+                if(this.editKapal.customer) {
+                    const customer = await axios.get(`https://track.kapalpintar.co.id/api/perusahaan/${this.editKapal.customer}`);
+                    this.customer = customer.data.results[0];
+                }
+                if(this.editKapal.type_id) {
+                    const tipe_kapal = await axios.get(`https://track.kapalpintar.co.id/api/tipe_kapal/${this.editKapal.type_id}`);
+                    this.tipeKapal = tipe_kapal.data.results[0];
+                }
+                if(this.editKapal.category_id) {
+                    const kategori_customer = await axios.get(`https://track.kapalpintar.co.id/api/kategori_customers/${this.editKapal.category_id}`);
+                    this.kategoriCustomer = kategori_customer.data.results[0];
+                }
 
                 this.closeloadingBar();
             } catch(err) {
@@ -745,7 +744,10 @@ export default {
             try {
                 this.showloadingBar();
 
-                this.editKapal.id_customer = this.editKapal.customer;
+                this.editKapal.id_customer = this.customer.id ? this.customer.id : null;
+                this.editKapal.type_id = this.tipeKapal.id ? this.tipeKapal.id : null;
+                this.editKapal.category_id = this.kategoriCustomer.id ? this.kategoriCustomer.id : null;
+
                 await axios.put(`https://track.kapalpintar.co.id/api/updatepemilikkapal/${sn}`, this.editKapal);
 
                 this.CnmKapal = this.editKapal.name;

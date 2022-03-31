@@ -66,7 +66,7 @@
                                     <a href="javascript:void(0)" class="iq-email-title">
                                         <div class="media-support-info ml-3">
                                             <h6>{{item.customer_name ? item.customer_name : '-'}}</h6>
-                                            <p class="mb-0 font-size-12">{{item.npwp ? item.npwp : '-'}}</p>
+                                            <p class="mb-0 font-size-12">{{item.contact ? item.contact : '-'}}</p>
                                         </div>
                                     </a>
                                 </li>
@@ -95,8 +95,8 @@
                 </div>
                 <!-- bila ada customer yang di-select - start -->
                 <div class="col-lg-6" v-if="perusahaan">
-                    <div class="row">
-                        <div class="iq-card iq-user-profile-block" style="height: 83%;">
+                    <div class="row m-0">
+                        <div class="iq-card iq-user-profile-block w-100" style="height: 83%;">
                             <div class="iq-card-body" style="padding: 10px;">
                                 <div class="user-details-block">
                                     <div class="user-profile text-center">
@@ -105,12 +105,12 @@
                                     <div class="text-center mt-3">
                                         <h5>{{ perusahaan.customer_name }}</h5>
                                         <p :class="{
-                                            'text-danger': !akun.length,
-                                            'text-primary': akun.length
+                                            'text-danger': !akun.email,
+                                            'text-primary': akun.email
                                         }">
-                                            {{ !akun.length ? '-' : akun.status }}
+                                            {{ !akun.email ? '-' : akun.status }}
                                         </p>
-                                        <p v-if="!akun.length" class="text-danger">Customer belum mempunyai akun! 
+                                        <p v-if="!akun.email" class="text-danger">Customer belum mempunyai akun! 
                                             <button data-toggle="modal" data-target="#form_akun"
                                                 data-backdrop="static" data-keyboard="false"
                                                 class="btn btn-sm btn-outline-danger"
@@ -119,11 +119,11 @@
                                                 Create !
                                             </button>
                                         </p>
-                                        <p v-if="akun.length" class="text-primary">Customer sudah mempunyai akun! 
+                                        <p v-if="akun.email" class="text-primary">Customer sudah mempunyai akun! 
                                             <button data-toggle="modal" data-target="#form_akun"
                                                 data-backdrop="static" data-keyboard="false"
                                                 class="btn btn-sm btn-outline-primary"
-                                                @click="statusAkun = 'edit'; akun.password = null"
+                                                @click="statusAkun = 'edit'; editAkun(perusahaan.id);"
                                             >
                                                 Edit !
                                             </button>
@@ -243,7 +243,7 @@
                                     <ul class="iq-social-media" style="display: contents; line-height: 0px;">
                                         <li>
                                             <a href="javascript:void(0)" data-toggle="modal" data-target="#form_kapal" 
-                                                @click="formKapal = kapal[key]; statusKapal = 'edit';"
+                                                @click="editKapal(key); statusKapal = 'edit';"
                                             >
                                                 <i class="ri-edit-box-line"></i>
                                             </a>
@@ -254,7 +254,8 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="javascript:void(0)" data-toggle="modal" data-target="#detail_kapal" @click="activeListKapal(key)">
+                                            <a href="javascript:void(0)" data-toggle="modal" data-target="#detail_kapal" 
+                                                @click="selectedKapal = kapal[key]">
                                                 <i class="ri-file-list-2-line"></i>
                                             </a>
                                         </li>
@@ -411,17 +412,23 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Categori</label>
-                                    <select v-model="formKapal.category_id" class="form-control">
+                                    <!-- <select v-model="formKapal.category_id" class="form-control">
                                         <option value="" selected disabled>Pilih kategori customer</option>
                                         <option v-for="item in categoryCustomer" :key="item.id" :value="item.id">{{ item.name }}</option>
-                                    </select>
+                                    </select> -->
+                                    <multiselect v-model="kategoriCustomer" placeholder="Pilih kategori customer" 
+                                        :options="listTipeCustomer" :allow-empty="true" :close-on-select="true"
+                                        deselect-label="Klik untuk batal memilih" select-label="Klik untuk memilih" selected-label="Terpilih"
+                                        track-by="id" label="name"
+                                    ></multiselect>
                                 </div>
                                 <div class="form-group">
                                     <label>Tipe Kapal</label>
-                                    <select v-model="formKapal.type_id" class="form-control">
-                                        <option value="" selected disabled>Pilih tipe kapal</option>
-                                        <option v-for="item in tipeKapal" :key="item.id" :value="item.id">{{ item.name }}</option>
-                                    </select>
+                                    <multiselect v-model="tipeKapal" placeholder="Pilih tipe Kapal" 
+                                        :options="listTipeKapal" :allow-empty="true" :close-on-select="true"
+                                        deselect-label="Klik untuk batal memilih" select-label="Klik untuk memilih" selected-label="Terpilih"
+                                        track-by="id" label="name"
+                                    ></multiselect>
                                 </div>
                             </div>
                             <div class="col-lg-6">
@@ -528,7 +535,7 @@
                                         <div class="media-support-info">
                                             <h6>Latitude/Longitude</h6>
                                             <a href="javascript:void(0)">
-                                                {{ selectedKapal.lat ? selectedKapal.lat : '-' +' / '+ selectedKapal.lon ? selectedKapal.lon : '-' }}
+                                                {{ (selectedKapal.lat ? selectedKapal.lat : '-') +' / '+ (selectedKapal.lon ? selectedKapal.lon : '-') }}
                                             </a>
                                         </div>
                                     </li>
@@ -536,7 +543,7 @@
                                         <div class="media-support-info">
                                             <h6>Atp Start/End</h6>
                                             <a href="javascript:void(0)">
-                                                {{ selectedKapal.atp_start ? selectedKapal.atp_start : '-' +' / '+ selectedKapal.atp_end ? selectedKapal.atp_end : '-' }}
+                                                {{ (selectedKapal.atp_start ? selectedKapal.atp_start : '-') +' / '+ (selectedKapal.atp_end ? selectedKapal.atp_end : '-') }}
                                             </a>
                                         </div>
                                     </li>
@@ -563,7 +570,6 @@ export default {
     data() {
         return {
             customer: [],
-            categoryCustomer: [],
             CnmCustomer: null,
 
             // form customer
@@ -586,9 +592,14 @@ export default {
 
             // form kapal
             selectedKapal: {},
-            tipeKapal: {},
             formKapal: {},
+            kategoriCustomer: [],
+            tipeKapal: [],
             statusKapal: 'create',
+
+            // multiselect options
+            listTipeKapal: [],
+            listTipeCustomer: [],
 
             // individual data
             perusahaan: null,
@@ -623,8 +634,8 @@ export default {
                 const categoryCustomer = await axios.get(`https://track.kapalpintar.co.id/api/kategori_customers`);
 
                 this.customer = customer.data.results;
-                this.tipeKapal = tipeKapal.data.results;
-                this.categoryCustomer = categoryCustomer.data.results;
+                this.listTipeKapal = tipeKapal.data.results;
+                this.listTipeCustomer = categoryCustomer.data.results;
                 this.closeloadingBar();
             } catch (error) {
                 console.log(error);
@@ -643,13 +654,24 @@ export default {
         async getSingleCustomer(id) {
             try {
                 this.showloadingBar();
+
+                if(id === this.liCustomerActive) {
+                    this.perusahaan = this.kapal = this.liCustomerActive = null;
+
+                    this.closeloadingBar();
+                    return;
+                }
+
                 this.activeListCustomer(id);
                 const perusahaan = await axios.get(`https://track.kapalpintar.co.id/api/perusahaan/${id}`);
                 const akun = await axios.get(`https://track.kapalpintar.co.id/api/akuncustomer/${id}`);
                 const kapal = await axios.get(`https://track.kapalpintar.co.id/api/kapal/${id}`);
 
                 this.perusahaan = perusahaan.data.results[0];
+
+                this.akun.email = null;
                 if(akun.data.results[0]) this.akun.email = akun.data.results[0].email;
+
                 this.kapal = kapal.data;
                 this.kapalTotal = this.countKapal();
 
@@ -767,6 +789,19 @@ export default {
                 console.log(err);
             }
         },
+        async editAkun(id) {
+            try {
+                this.showloadingBar();
+
+                const response = await axios.get(`https://track.kapalpintar.co.id/api/singleakun/${id}`);
+                this.akun.password = response.data.results[0].password;
+
+                this.closeloadingBar();
+            } catch(err) {
+                this.closeloadingBar();
+                console.log(err)
+            }
+        },
         async updateAkun() {
             try {
                 this.showloadingBar();
@@ -803,7 +838,6 @@ export default {
                     this.statusKapal = 'edit';
                     this.formKapal.name = response.data.results[0].name;
                     this.statusKapal = 'create';
-                    console.log(response.data.results[0].name, this.formKapal.name);
                 }
 
                 this.closeloadingBar();
@@ -860,10 +894,36 @@ export default {
                 console.log(err);
             }
         },
+        async editKapal(key) {
+            try {
+                this.showloadingBar();
+
+                this.formKapal = this.kapal[key];
+                this.formKapal.atp_start = this.kapal[key].atp_startYMD;
+                this.formKapal.atp_end = this.kapal[key].atp_endYMD;
+    
+                if(this.formKapal.category_id) {
+                    const kategori_customer = await axios.get(`https://track.kapalpintar.co.id/api/kategori_customers/${this.formKapal.category_id}`);
+                    this.kategoriCustomer = kategori_customer.data.results[0];
+                }
+                if(this.formKapal.type_id) {
+                    const tipe_kapal = await axios.get(`https://track.kapalpintar.co.id/api/tipe_kapal/${this.formKapal.type_id}`);
+                    this.tipeKapal = tipe_kapal.data.results[0];
+                }
+
+                this.closeloadingBar();
+            } catch(err) {
+                this.closeloadingBar();
+                console.log(err)
+            }
+        },
         async updateKapal() {
             try {
                 this.showloadingBar();
                 this.formKapal.tipeForm = 'Edit';
+                this.formKapal.customer_id = this.kategoriCustomer ? this.kategoriCustomer : null;
+                this.formKapal.type_id = this.tipeKapal ? this.tipeKapal : null;
+
                 await axios.put(`https://track.kapalpintar.co.id/api/updatepemilikkapal/${this.formKapal.sn}`, this.formKapal);
 
                 this.formKapal = {};
@@ -915,9 +975,6 @@ export default {
         // trait
         activeListCustomer(id) {
             this.liCustomerActive = id ? id : null;
-        },
-        activeListKapal(key) {
-            this.selectedKapal = this.kapal[key];
         },
         showloadingBar() {
             this.$swal.fire({

@@ -1,103 +1,105 @@
 <template>
-  <div class="iq-top-navbar header-top-sticky" style="width: calc(100% - 60px);">
-    <div class="iq-navbar-custom">
-      <div class="iq-sidebar-logo">
-        <div class="top-logo">
-          <a href="index.html" class="logo">
-            <img src="images/logo.png" class="img-fluid" alt="" />
-            <span>XRay</span>
-          </a>
-        </div>
-      </div>
-      <nav class="navbar navbar-expand-lg navbar-light p-0">
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <div class="row">
-            <div class="col-lg-6">
-              <img src="images/kapalpintar.jpeg" class="ml-3" style="width: 200px;">
-            </div>
-            <div class="col-lg-6 text-right">
-              <h4 class="mt-3">{{nmPerusahaan}}</h4>
-            </div>
-          </div>
-          <div class="navbar-nav ml-auto navbar-list">
-            <li class="nav-item">
-              <a href="/perusahaan" data-toggle="tooltip" data-placement="bottom" 
-                title="Perusahaan Page" style="font-size: 30px;"
-                :class="{
-                  'link-active': activeMenu === 'perusahaan',
-                  'text-dark': activeMenu !== 'perusahaan',
-                }"
-                class="link iq-waves-effect border-style">
-                <i class="ri-community-fill icon-menu-home"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="/customers" title="Customer Page"
-                :class="{
-                  'link-active': activeMenu === 'customer',
-                  'text-dark': activeMenu !== 'customer',
-                }"
-                class="link iq-waves-effect text-dark"
-              >
-                <i class="ri-folder-user-line icon-menu"></i> Customers
-              </a>
-            </li>
-            <li class="nav-item iq-full-screen">
-              <a href="#" class="iq-waves-effect" id="btnFullscreen">
-                <i class="ri-fullscreen-line"></i>
-              </a>
-            </li>
-          </div>
-        </div>
-        <ul class="navbar-list">
-          <li>
-            <a
-              href="#"
-              class="search-toggle iq-waves-effect d-flex align-items-center"
-            >
-              <img
-                src="images/user/01.jpg"
-                class="img-fluid rounded mr-3"
-                alt="user"
-              />
-              <div class="caption">
-                <h6 class="mb-0 line-height">Account</h6>
-                <span class="font-size-12">Available</span>
-              </div>
+  <div>
+    <div class="iq-top-navbar header-top-sticky" style="width: calc(100% - 60px);">
+      <div class="iq-navbar-custom">
+        <div class="iq-sidebar-logo">
+          <div class="top-logo">
+            <a href="index.html" class="logo">
+              <img src="images/logo.png" class="img-fluid" alt="" />
+              <span>XRay</span>
             </a>
-            <div class="iq-sub-dropdown iq-user-dropdown">
-              <div class="iq-card shadow-none m-0">
-                <div class="iq-card-body p-0 ">
-                  <div class="bg-primary p-3">
-                    <h5 class="mb-0 text-white line-height">{{this.$session.get('email')}}</h5>
-                    <span class="text-white font-size-12">Available</span>
-                  </div>
-                  <a href="javascript:void(0)" data-toggle="modal" data-target="#my-akun" class="iq-sub-card iq-bg-primary-hover">
-                    <div class="media align-items-center">
-                      <div class="rounded iq-card-icon iq-bg-primary">
-                        <i class="ri-file-user-line"></i>
-                      </div>
-                      <div class="media-body ml-3">
-                        <h6 class="mb-0 ">My Profile</h6>
-                        <p class="mb-0 font-size-12">View personal profile details.</p>
-                      </div>
+          </div>
+        </div>
+        <nav class="navbar navbar-expand-lg navbar-light p-0">
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="row">
+              <div class="col-lg-6">
+                <img src="images/kapalpintar.jpeg" class="ml-3" style="width: 200px;">
+              </div>
+              <div class="col-lg-6 text-right">
+                <h4 class="mt-3">{{nmPerusahaan}}</h4>
+              </div>
+            </div>
+            <div class="navbar-nav ml-auto navbar-list">
+              <li class="nav-item">
+                <a href="/perusahaan" data-toggle="tooltip" data-placement="bottom" 
+                  title="Perusahaan Page" style="font-size: 30px;"
+                  :class="{
+                    'link-active': activeMenu === 'perusahaan',
+                    'text-dark': activeMenu !== 'perusahaan',
+                  }"
+                  class="link iq-waves-effect border-style">
+                  <i class="ri-community-fill icon-menu-home"></i>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/customers" title="Customer Page"
+                  :class="{
+                    'link-active': activeMenu === 'customer',
+                    'text-dark': activeMenu !== 'customer',
+                  }"
+                  class="link iq-waves-effect text-dark"
+                >
+                  <i class="ri-folder-user-line icon-menu"></i> Customers
+                </a>
+              </li>
+              <li class="nav-item iq-full-screen">
+                <a href="#" class="iq-waves-effect" id="btnFullscreen">
+                  <i class="ri-fullscreen-line"></i>
+                </a>
+              </li>
+            </div>
+          </div>
+          <ul class="navbar-list">
+            <li>
+              <a
+                href="#"
+                class="search-toggle iq-waves-effect d-flex align-items-center"
+              >
+                <img
+                  src="images/user/01.jpg"
+                  class="img-fluid rounded mr-3"
+                  alt="user"
+                />
+                <div class="caption">
+                  <h6 class="mb-0 line-height">Account</h6>
+                  <span class="font-size-12">Available</span>
+                </div>
+              </a>
+              <div class="iq-sub-dropdown iq-user-dropdown">
+                <div class="iq-card shadow-none m-0">
+                  <div class="iq-card-body p-0 ">
+                    <div class="bg-primary p-3">
+                      <h5 class="mb-0 text-white line-height">{{this.$session.get('email')}}</h5>
+                      <span class="text-white font-size-12">Available</span>
                     </div>
-                  </a>
-                  <div class="d-inline-block w-100 text-center p-3">
-                    <a
-                      class="bg-primary iq-sign-btn"
-                      href="javascript:void(0)"
-                      role="button"
-                      @click="signout"
-                      >Sign out<i class="ri-login-box-line ml-2"></i
-                    ></a>
+                    <a href="javascript:void(0)" data-toggle="modal" data-target="#my-akun" class="iq-sub-card iq-bg-primary-hover">
+                      <div class="media align-items-center">
+                        <div class="rounded iq-card-icon iq-bg-primary">
+                          <i class="ri-file-user-line"></i>
+                        </div>
+                        <div class="media-body ml-3">
+                          <h6 class="mb-0 ">My Profile</h6>
+                          <p class="mb-0 font-size-12">View personal profile details.</p>
+                        </div>
+                      </div>
+                    </a>
+                    <div class="d-inline-block w-100 text-center p-3">
+                      <a
+                        class="bg-primary iq-sign-btn"
+                        href="javascript:void(0)"
+                        role="button"
+                        @click="signout"
+                        >Sign out<i class="ri-login-box-line ml-2"></i
+                      ></a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </li>
-        </ul>
-      </nav>
+            </li>
+          </ul>
+        </nav>
+      </div>
     </div>
     <div class="modal fade" id="my-akun" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -240,8 +242,5 @@ export default {
   position: absolute;
   bottom: 15%;
   font-size: 25px;
-}
-.modal-backdrop {
-  z-index: 1040;
 }
 </style>
