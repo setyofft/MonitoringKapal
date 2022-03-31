@@ -18,15 +18,16 @@
                         <div class="iq-card-body pl-2 pr-0 pb-0">
                             <div class="form-group ml-1 mr-2">
                                 <input type="text" class="form-control" style="padding-right:30px"
-                                    placeholder="Cari Nama Kapal" @keyup="cariNamaKapal" v-model="CnmKapal">
-                                <a class="search-link mod" href="#" @click="cariNamaKapal"><i class="ri-search-line"></i></a>
+                                    placeholder="Cari Nama Kapal" @keyup="cariNamaKapal" v-model="CnmKapal"
+                                >
+                                <a class="mod" href="#" @click="cariNamaKapal"><i class="ri-search-line"></i></a>
                             </div>
                             <ul class="doctors-lists m-0 p-0 iq-email-sender-list" style="height: 56vh;">
                                 <li class="d-flex mb-2 align-items-center pr-1 set-list"
                                     v-for="(item, key) in kapal" 
                                     :key="key" 
-                                    :class="{'active-li': item.id === selectedKapal}"
-                                    @click="activeListKapal(item.id)"
+                                    :class="{'active-li': item.id === selectedKapal && item.id !== null}"
+                                    @click="selectedKapal = item.id ? item.id : null"
                                 >
                                     <div class="user-img img-fluid">
                                         <img :src="!item.timestamp || item.timestamp < item.tglNow ? 'images/shipOff.png' : 'images/shipOn.png' "
@@ -34,8 +35,8 @@
                                     </div>
                                     <a href="javascript:void(0)" @click="getSingleKapal(item)" class="iq-email-title">
                                         <div class="media-support-info ml-3">
-                                            <h6>{{item.name}}</h6>
-                                            <p class="mb-0 font-size-12">{{item.sn}}</p>
+                                            <h6>{{item.name ? item.name : '-'}}</h6>
+                                            <p class="mb-0 font-size-12">{{item.sn ? item.sn : '-'}}</p>
                                         </div>
                                     </a>
                                 </li>
@@ -775,9 +776,6 @@ export default {
                 showConfirmButton: false,
             }).close();
         },
-        activeListKapal(id) {
-            this.selectedKapal = id ? id : null;
-        },
         formatISODate(date) {
             let d = new Date(date);
 
@@ -809,7 +807,7 @@ li .iq-email-title{
 .mod{
     position: absolute;
     right: 30px;
-    top: 12.3%;
+    top: 80px;
     font-size: 15pt;
 }
 .set-li {

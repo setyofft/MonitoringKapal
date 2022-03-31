@@ -1029,10 +1029,10 @@ export default {
     background: #ceebee;
     border-radius: 50px;
 }
-.mod{
+.mod {
     position: absolute;
     right: 30px;
-    top: 10.3%;
+    top: 70px;
     font-size: 15pt;
 }
 .setShow {
