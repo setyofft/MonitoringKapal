@@ -99,7 +99,7 @@
                                     :options-style="stylegeojson" 
                                 />
                                 <l-rotated-marker v-if="kapalSingle.length" :lat-lng="kapalSingle" :icon="icon"
-                                    :rotationAngle="heading">
+                                    :rotationAngle="heading" ref="singleMarker">
                                     <l-popup class="map-popup">
                                         <table>
                                             <tr>
@@ -549,6 +549,7 @@ export default {
                     this.markerKapal = [];
                     this.markerRute = [];
                     this.lineLatLon = [];
+                    if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
                 }
 
                 const response = await axios.get(this.getUrl);
@@ -600,6 +601,9 @@ export default {
                         return;
                     }
                 }
+
+                if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
+
                 const response = await axios.get(this.getUrl);
                 this.kapal = response.data;
                 this.marekerKapal = response.data;
@@ -609,7 +613,7 @@ export default {
                 console.log(error);
             }
         },
-        getSingleKapal(item) {
+        async getSingleKapal(item) {
             try {
                 this.markerKapal = [];
                 this.markerRute = [];
@@ -624,7 +628,8 @@ export default {
                 //popup
                 this.detailKapal = item;
 
-                this.getTanggal(item.sn);
+                await this.getTanggal(item.sn);
+                this.$refs['singleMarker'].mapObject.openPopup();
             } catch (error) {
                 console.log(error);
             }
@@ -637,6 +642,9 @@ export default {
                 } else {
                     this.getUrl = `https://track.kapalpintar.co.id/api/kapal/search/${this.$session.get('id')}`;
                 }
+
+                if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
+
                 const response = await axios.post(this.getUrl, {
                     search: this.CnmKapal
                 });
@@ -651,7 +659,7 @@ export default {
             try {
                 const response = await axios.get(`https://track.kapalpintar.co.id/api/histori_tgl/${sn}`);
                 this.tglHistori = response.data;
-                this.tgldari = response.data[0].tanggal;
+                this.tgldari = response.data.length ? response.data[0].tanggal : null;
                 this.tglsampai = new Date().toISOString().slice(0, 10);
                 this.deviceId = sn;
                 this.closeloadingBar();
@@ -688,6 +696,7 @@ export default {
                 }
 
                 this.stateRefresh = this.stateTrack = this.stateDownload = true;
+                if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
 
                 const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, data);
                 this.markerKapal = [];
