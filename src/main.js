@@ -9,9 +9,12 @@ import VueSession from 'vue-session'
 import 'leaflet/dist/leaflet.css';
 import LControlFullscreen from 'vue2-leaflet-fullscreen';
 import Vue2LeafletRotatedMarker from 'vue2-leaflet-rotatedmarker'
+import Multiselect from 'vue-multiselect';
+import JsonExcel from "vue-json-excel";
 
 import Sign from './components/Sign.vue'
 import Perusahaan from './components/Perusahaan.vue'
+import Customer from './components/Customer.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -23,11 +26,14 @@ Vue.use(VueSweetalert2)
 Vue.use(Vuelidate)
 Vue.use(VueSession)
 Vue.component('l-control-fullscreen', LControlFullscreen);
-Vue.component('l-rotated-marker', Vue2LeafletRotatedMarker)
+Vue.component('l-rotated-marker', Vue2LeafletRotatedMarker);
+Vue.component('multiselect', Multiselect);
+Vue.component('downloadExcel', JsonExcel);
 
 Vue.config.productionTip = false
 
-const routes = [{
+const routes = [
+    {
         name: 'Sign',
         path: '/',
         component: Sign
@@ -37,6 +43,11 @@ const routes = [{
         path: '/perusahaan',
         component: Perusahaan
     },
+    {
+        name: 'Customer',
+        path: '/customers',
+        component: Customer
+    }
 ];
 
 const router = new VueRouter({ mode: 'history', routes: routes })

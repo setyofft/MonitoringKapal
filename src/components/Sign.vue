@@ -26,7 +26,7 @@
             </div>
             <div class="form-group">
               <label for="exampleInputPassword1">Password</label>
-              <a href="#" class="float-right">Forgot password?</a>
+              <!-- <a href="#" class="float-right">Forgot password?</a> -->
               <input
                 type="password"
                 class="form-control mb-0"
@@ -125,6 +125,7 @@ export default {
                 if(response.data['results'][0]['level']==='root'){
                     this.$session.set('id', response.data['results'][0]['id_akun'])
                     this.$session.set('nmperusahaan', response.data['results'][0]['nama_perusahaan'])
+                    this.$session.set('email', response.data['results'][0]['email']);
                 }else{
                     this.$session.set('id', response.data['results'][0]['id_customer'])
                 }
