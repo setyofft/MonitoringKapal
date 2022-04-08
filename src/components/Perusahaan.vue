@@ -140,13 +140,20 @@
                                             <tr>
                                                 <th width="50%">Atp Start / Atp End</th>
                                                 <th>:</th>
-                                                <td>{{formatISODate(detailKapal.atp_start) +' / '+ formatISODate(detailKapal.atp_end)}}</td>
+                                                <td>{{(detailKapal.atp_start != null) ? detailKapal.atp_start : '-'}} / {{(detailKapal.atp_end != null) ? detailKapal.atp_end : '-'}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Last Update</th>
                                                 <th>:</th>
                                                 <td :class="(detailKapal.timestamp < detailKapal.tglNow) ? 'text-danger' : ''">
-                                                    {{detailKapal.timestamp ? detailKapal.timestamp : '-'}}
+                                                    {{(detailKapal.timestamp != null) ? detailKapal.timestamp : '-'}}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th width="50%">First Active</th>
+                                                <th>:</th>
+                                                <td>
+                                                    {{first_active}}
                                                 </td>
                                             </tr>
                                         </table>
@@ -170,7 +177,8 @@
                                 <l-rotated-marker v-for="(data, key) in markerKapal" :key="key"
                                     :lat-lng="[parseFloat(data.lat), parseFloat(data.lon)]"
                                     :icon="!data.timestamp || data.timestamp < data.tglNow ? iconOff : iconOn"
-                                    :rotationAngle="data.heading ? parseInt(data.heading) : 0">
+                                    :rotationAngle="data.heading ? parseInt(data.heading) : 0"
+                                    @click="getFirstActive(data.sn)">
                                     <l-popup class="map-popup">
                                         <table>
                                             <tr>
@@ -211,13 +219,20 @@
                                             <tr>
                                                 <th width="50%">Atp Start / Atp End</th>
                                                 <th>:</th>
-                                                <td>{{formatISODate(data.atp_start) +' / '+ formatISODate(data.atp_end)}}</td>
+                                                <td>{{(data.atp_start != null) ? data.atp_start : '-'}} / {{(data.atp_end != null) ? data.atp_end : '-'}}</td>
                                             </tr>
                                             <tr>
                                                 <th width="50%">Last Update</th>
                                                 <th>:</th>
                                                 <td :class="data.timestamp < data.tglNow ? 'text-danger' : ''">
-                                                    {{data.timestamp ? data.timestamp : '-'}}
+                                                    {{(data.timestamp != null) ? data.timestamp : '-'}}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th width="50%">First Active</th>
+                                                <th>:</th>
+                                                <td>
+                                                   {{first_active}}
                                                 </td>
                                             </tr>
                                         </table>
@@ -239,7 +254,7 @@
                                 </l-rotated-marker>
 
                                 <!-- rute marker -->
-                                <l-rotated-marker v-for="data in markerRute" :key="data.id"
+                                <l-rotated-marker v-for="(data, key) in markerRute" :key="key"
                                     :lat-lng="[parseFloat(data.Latitude), parseFloat(data.Longitude)]"
                                     :icon="data.kecepatan ? iconOn: iconOff"
                                     :rotationAngle="data.Direction ? parseInt(data.Direction) : 0">
@@ -420,6 +435,7 @@ import {
 import L from 'leaflet';
 import mapjson from '../assets/seazone.json'
 import axios from 'axios';
+import $ from 'jquery';
 
 L.Icon.Default.imagePath = '/';
 L.Icon.Default.mergeOptions({
@@ -480,6 +496,7 @@ export default {
 
             //data detail kapal
             detailKapal: {},
+            first_active: "-",
 
             icon: null,
             heading: null,
@@ -518,7 +535,10 @@ export default {
     created() {
         this.getJsonMap()
         this.getKapal()
-        this.getLists()
+        if(this.$session.get('level') === 'root') {
+            this.getLists()
+        }
+        
     },
     mounted() {
         this.idakun = this.$session.get("level");
@@ -541,7 +561,7 @@ export default {
                 } else {
                     this.getUrl = `https://track.kapalpintar.co.id/api/kapal/${this.$session.get('id')}`;
                 }
-
+                
                 if(refresh_state) {
                     this.heading = this.tglHistori = this.dari = this.sampai = this.deviceId = this.CnmKapal =  this.selectedKapal = null;
                     this.stateRefresh = this.stateTrack = this.stateDownload = false;
@@ -549,7 +569,7 @@ export default {
                     this.markerKapal = [];
                     this.markerRute = [];
                     this.lineLatLon = [];
-                    if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
+                    // if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
                 }
 
                 const response = await axios.get(this.getUrl);
@@ -570,6 +590,10 @@ export default {
                 this.listPerusahaan = data_perusahaan.data.results;
                 this.listTipeCustomer = kategori_customer.data.results;
                 this.listTipeKapal = tipe_kapal.data.results;
+
+                console.log(this.listPerusahaan);
+                console.log(this.listTipeCustomer);
+                console.log(this.listTipeKapal);
             } catch(err) {
                 console.log(err);
             }
@@ -619,6 +643,7 @@ export default {
                 this.markerRute = [];
                 this.lineLatLon = [];
                 this.tglHistori = null;
+                this.first_active = 'Loading...';
 
                 this.stateRefresh = this.stateTrack = true;
                 this.kapalSingle = [parseFloat(item.lat), parseFloat(item.lon)];
@@ -630,9 +655,22 @@ export default {
 
                 await this.getTanggal(item.sn);
                 this.$refs['singleMarker'].mapObject.openPopup();
+
+                //get first active
+                this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${item.sn.replace(/\s+/g, '').toLowerCase()}`;
+                const response = await axios.get(this.getUrl);
+                this.first_active = response.data.results.first_active;
+                
             } catch (error) {
                 console.log(error);
             }
+        },
+        async getFirstActive(sn){
+            this.first_active = 'Loading...';
+            this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${sn.replace(/\s+/g, '').toLowerCase()}`;
+            const response = await axios.get(this.getUrl);
+
+            this.first_active = response.data.results.first_active;
         },
         async cariNamaKapal() {
             try {
@@ -670,6 +708,7 @@ export default {
         },
         async getRute() {
             this.showloadingBar();
+            $(".leaflet-popup-close-button")[0].click();
             try {
                 let data = {dari: this.tgldari, sampai: this.tglsampai, jumltitik: 10, tipefilter: null};
 
@@ -696,7 +735,7 @@ export default {
                 }
 
                 this.stateRefresh = this.stateTrack = this.stateDownload = true;
-                if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
+                // if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
 
                 const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, data);
                 this.markerKapal = [];
@@ -787,7 +826,7 @@ export default {
         },
         formatISODate(date) {
             let d = new Date(date);
-
+            
             return d.toISOString().split('T')[0];
         }
     },

@@ -32,7 +32,7 @@
                   <i class="ri-community-fill icon-menu-home"></i>
                 </a>
               </li>
-              <li class="nav-item">
+              <li class="nav-item" v-if="this.$session.get('level') == 'root'">
                 <a href="/customers" title="Customer Page"
                   :class="{
                     'link-active': activeMenu === 'customer',
