@@ -590,10 +590,6 @@ export default {
                 this.listPerusahaan = data_perusahaan.data.results;
                 this.listTipeCustomer = kategori_customer.data.results;
                 this.listTipeKapal = tipe_kapal.data.results;
-
-                console.log(this.listPerusahaan);
-                console.log(this.listTipeCustomer);
-                console.log(this.listTipeKapal);
             } catch(err) {
                 console.log(err);
             }
