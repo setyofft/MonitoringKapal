@@ -17,9 +17,18 @@
                         </div>
                         <div class="iq-card-body pl-2 pr-0 pb-0">
                             <div class="form-group ml-1 mr-2">
-                                <input type="text" class="form-control" style="padding-right:30px"
-                                    placeholder="Cari Nama Kapal" @keyup="cariNamaKapal" v-model="CnmKapal"
+                                <input :type="searchKapalBy != 'active_date' ? 'text' : 'date'"
+                                    class="form-control" style="padding-right:135px"
+                                    :placeholder="searchKapalBy == 'name' ? 'Cari Nama Kapal' : 'Cari SN Kapal'" 
+                                    @keyup="cariNamaKapal" v-model="CnmKapal"
                                 >
+                                <select class="form-control custom-select-search my-1 pl-0" 
+                                    v-model="searchKapalBy" @change="CnmKapal = ''">
+                                >
+                                    <option value="name" selected>By Name</option>
+                                    <option value="sn">By SN</option>
+                                    <option value="active_date">By Active Date</option>
+                                </select>
                                 <a class="mod" href="#" @click="cariNamaKapal"><i class="ri-search-line"></i></a>
                             </div>
                             <ul class="doctors-lists m-0 p-0 iq-email-sender-list" style="height: 56vh;">
@@ -466,6 +475,7 @@ export default {
             markerKapal: [],
             markerRute: [],
             CnmKapal: null,
+            searchKapalBy: 'name',
             tglHistori: null,
             deviceId: null,
             lineLatLon: [],
@@ -680,7 +690,8 @@ export default {
                 if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
 
                 const response = await axios.post(this.getUrl, {
-                    search: this.CnmKapal
+                    search: this.CnmKapal,
+                    by: (this.searchKapalBy ? this.searchKapalBy : 'name')
                 });
                 this.kapal = response.data;
                 this.markerKapal = response.data;
@@ -795,6 +806,7 @@ export default {
 
                 await axios.put(`https://track.kapalpintar.co.id/api/updatepemilikkapal/${sn}`, this.editKapal);
 
+                this.searchKapalBy = 'name';
                 this.CnmKapal = this.editKapal.name;
                 await this.cariNamaKapal();
                 this.$swal.fire({
@@ -851,8 +863,17 @@ li .iq-email-title{
 .mod{
     position: absolute;
     right: 30px;
-    top: 80px;
+    top: 82px;
     font-size: 15pt;
+}
+.custom-select-search {
+    position: absolute;
+    height: 40px;
+    right: 55px;
+    top: 78px;
+    max-width: 100px;
+    border: 0px;
+    outline: 0px;
 }
 .set-li {
     border-left: 1px solid grey;
