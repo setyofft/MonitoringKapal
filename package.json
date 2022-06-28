@@ -13,6 +13,7 @@
         "core-js": "^3.6.5",
         "jquery": "^3.6.0",
         "leaflet": "^1.7.1",
+        "moment-timezone": "^0.5.34",
         "vue": "^2.6.11",
         "vue-json-excel": "^0.3.0",
         "vue-multiselect": "^2.1.6",

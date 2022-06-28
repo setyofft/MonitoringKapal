@@ -152,10 +152,17 @@
                                                 <td>{{(detailKapal.atp_start != null) ? detailKapal.atp_start : '-'}} / {{(detailKapal.atp_end != null) ? detailKapal.atp_end : '-'}}</td>
                                             </tr>
                                             <tr>
+                                                <th width="50%">Provider</th>
+                                                <th>:</th>
+                                                <td>
+                                                    {{detailKapal.provider}}
+                                                </td>
+                                            </tr>
+                                            <tr>
                                                 <th width="50%">Last Update</th>
                                                 <th>:</th>
                                                 <td :class="(detailKapal.timestamp < detailKapal.tglNow) ? 'text-danger' : ''">
-                                                    {{(detailKapal.timestamp != null) ? detailKapal.timestamp : '-'}}
+                                                    {{(detailKapal.timestamp != null) ? timeZoneConvert(detailKapal.last_update) : '-'}}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -231,10 +238,17 @@
                                                 <td>{{(data.atp_start != null) ? data.atp_start : '-'}} / {{(data.atp_end != null) ? data.atp_end : '-'}}</td>
                                             </tr>
                                             <tr>
+                                                <th width="50%">Provider</th>
+                                                <th>:</th>
+                                                <td>
+                                                    {{data.provider}}
+                                                </td>
+                                            </tr>
+                                            <tr>
                                                 <th width="50%">Last Update</th>
                                                 <th>:</th>
                                                 <td :class="data.timestamp < data.tglNow ? 'text-danger' : ''">
-                                                    {{(data.timestamp != null) ? data.timestamp : '-'}}
+                                                    {{(data.timestamp != null) ? timeZoneConvert(data.last_update) : '-'}}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -315,7 +329,7 @@
             </div>
         </div>
         <!-- tracing modal -->
-        <div class="modal fade" id="tracing" tabindex="-1" aria-labelledby="tracing" aria-hidden="true">
+        <div class="modal fade" ref="tracing" id="tracing" tabindex="-1" aria-labelledby="tracing" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -445,6 +459,7 @@ import L from 'leaflet';
 import mapjson from '../assets/seazone.json'
 import axios from 'axios';
 import $ from 'jquery';
+import moment from "moment-timezone";
 
 L.Icon.Default.imagePath = '/';
 L.Icon.Default.mergeOptions({
@@ -452,6 +467,8 @@ L.Icon.Default.mergeOptions({
     iconUrl: require('leaflet/dist/images/marker-icon.png'),
     shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
+
+moment.tz.guess();
 
 export default {
     name: "Perusahaan",
@@ -533,6 +550,8 @@ export default {
                 iconUrl: '/images/iconoff.png',
                 iconSize: [12, 12],
             }),
+            todayDate: moment().format('DD-MM-YYYY, H:mm:ss'),
+            utcdate: moment.utc("2022-06-28 05:48:25"),
         };
     },
     beforeCreate: function () {
@@ -548,7 +567,6 @@ export default {
         if(this.$session.get('level') === 'root') {
             this.getLists()
         }
-        
     },
     mounted() {
         this.idakun = this.$session.get("level");
@@ -584,7 +602,15 @@ export default {
 
                 const response = await axios.get(this.getUrl);
                 this.kapal = response.data;
-                this.markerKapal = response.data;
+                let addMarker = [];
+                for (let i = 0; i < response.data.length; i++) {
+                    if (response.data[i].lat != null && response.data[i].lat != '0.000000') {
+                        addMarker.push(response.data[i]);
+                    } 
+                }
+
+                this.markerKapal = addMarker;
+                
 
                 this.closeloadingBar();
             } catch (error) {
@@ -651,21 +677,30 @@ export default {
                 this.tglHistori = null;
                 this.first_active = 'Loading...';
 
-                this.stateRefresh = this.stateTrack = true;
-                this.kapalSingle = [parseFloat(item.lat), parseFloat(item.lon)];
-                this.center = [parseFloat(item.lat), parseFloat(item.lon)];
-                this.icon = !item.timestamp || item.timestamp < item.tglNow ? this.iconOff : this.iconOn;
-                this.heading = item.heading ? parseInt(item.heading) : 0;
-                //popup
-                this.detailKapal = item;
+                if (item.lat == '0.000000' || item.lat == null) {
+                    this.popupPesan('Lokasi kapal tidak sesuai !')
+                } else {
+                    this.stateRefresh = this.stateTrack = true;
+                    this.kapalSingle = [parseFloat(item.lat), parseFloat(item.lon)];
+                    this.center = [parseFloat(item.lat), parseFloat(item.lon)];
+                    this.icon = !item.timestamp || item.timestamp < item.tglNow ? this.iconOff : this.iconOn;
+                    this.heading = item.heading ? parseInt(item.heading) : 0;
+                    //popup
+                    this.detailKapal = item;
+                
+                    await this.getTanggal(item.sn);
+                    this.$refs['singleMarker'].mapObject.openPopup();
 
-                await this.getTanggal(item.sn);
-                this.$refs['singleMarker'].mapObject.openPopup();
-
-                //get first active
-                this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${item.sn.replace(/\s+/g, '').toLowerCase()}`;
-                const response = await axios.get(this.getUrl);
-                this.first_active = response.data.results.first_active;
+                    //get first active
+                    this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${item.sn.replace(/\s+/g, '').toLowerCase()}`;
+                    const response = await axios.get(this.getUrl);
+                
+                    if (response.data.status == 0) {
+                        this.first_active = "-";
+                    } else {
+                        this.first_active = this.timeZoneConvert(response.data.results.first_active);
+                    }
+                }
                 
             } catch (error) {
                 console.log(error);
@@ -676,7 +711,7 @@ export default {
             this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${sn.replace(/\s+/g, '').toLowerCase()}`;
             const response = await axios.get(this.getUrl);
 
-            this.first_active = response.data.results.first_active;
+            this.first_active = this.timeZoneConvert(response.data.results.first_active);
         },
         async cariNamaKapal() {
             try {
@@ -693,8 +728,20 @@ export default {
                     search: this.CnmKapal,
                     by: (this.searchKapalBy ? this.searchKapalBy : 'name')
                 });
+
                 this.kapal = response.data;
-                this.markerKapal = response.data;
+                let addMarker = [];
+                for (let i = 0; i < response.data.length; i++) {
+                    if (response.data[i].lat != null && response.data[i].lat != '0.000000') {
+                        addMarker.push(response.data[i]);
+                    } 
+                }
+                this.markerKapal = addMarker;
+
+                if (this.kapal.length == 0) {
+                    this.popupPesan('Data kapal tidak ditemukan');
+                }
+                
             } catch (error) {
                 console.log(error);
             }
@@ -715,7 +762,7 @@ export default {
         },
         async getRute() {
             this.showloadingBar();
-            $(".leaflet-popup-close-button")[0].click();
+            
             try {
                 let data = {dari: this.tgldari, sampai: this.tglsampai, jumltitik: 10, tipefilter: null};
 
@@ -741,14 +788,23 @@ export default {
                     return;
                 }
 
-                this.stateRefresh = this.stateTrack = this.stateDownload = true;
+                
                 // if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
 
                 const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, data);
-                this.markerKapal = [];
-                this.kapalSingle = [];
-                this.markerRute = response.data['histori'];
-                this.lineLatLon = response.data['polyline'];
+                
+                if (response.data['histori'] == 0) {
+                    this.popupPesan('Data tracking tidak ditemukan !');
+                    return;
+                }else{
+                    $(".leaflet-popup-close-button")[0].click();
+                    this.stateRefresh = this.stateTrack = this.stateDownload = true;
+                    this.markerKapal = [];
+                    this.kapalSingle = [];
+                    this.markerRute = response.data['histori'];
+                    this.lineLatLon = response.data['polyline'];
+                }
+                
                 this.closeloadingBar()
             } catch (error) {
                 console.log(error);
@@ -832,10 +888,36 @@ export default {
                 showConfirmButton: false,
             }).close();
         },
+        popupPesan(msg){
+            this.$swal.fire({
+                text: msg,
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+        },
         formatISODate(date) {
             let d = new Date(date);
             
             return d.toISOString().split('T')[0];
+        },
+        timeZoneConvert(date){
+            var dateFormat = 'DD-MM-YYYY HH:mm:ss';
+            var varDate = date;
+            var myDate =  moment(varDate,"YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
+
+            var testDateUtc = moment.utc(myDate);
+            var localDate = testDateUtc.local();
+
+            var ketLocal = '';
+            var strLocal = moment.tz.guess();
+            if (strLocal == 'Asia/Jakarta') {
+                ketLocal = 'WIB';
+            } else if(strLocal == 'Asia/Ujung_Pandang'){
+                ketLocal = 'WITA';
+            }else if(strLocal == 'Asia/Jayapura'){
+                ketLocal = 'WIT';
+            }
+            return localDate.format(dateFormat)+' '+ ketLocal;
         }
     },
 };
