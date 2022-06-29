@@ -39,7 +39,7 @@
                                     @click="selectedKapal = item.id ? item.id : null"
                                 >
                                     <div class="user-img img-fluid">
-                                        <img :src="!item.timestamp || item.timestamp < item.tglNow ? 'images/shipOff.png' : 'images/shipOn.png' "
+                                        <img :src="!item.last_update || convertLastUpdate(item.last_update) < item.tglNow ? 'images/shipOff.png' : 'images/shipOn.png' "
                                             alt="story-img" class="rounded-circle avatar-40" />
                                     </div>
                                     <a href="javascript:void(0)" @click="getSingleKapal(item)" class="iq-email-title">
@@ -161,7 +161,7 @@
                                             <tr>
                                                 <th width="50%">Last Update</th>
                                                 <th>:</th>
-                                                <td :class="(detailKapal.timestamp < detailKapal.tglNow) ? 'text-danger' : ''">
+                                                <td :class="(convertLastUpdate(detailKapal.last_update) < detailKapal.tglNow) ? 'text-danger' : ''">
                                                     {{(detailKapal.timestamp != null) ? timeZoneConvert(detailKapal.last_update) : '-'}}
                                                 </td>
                                             </tr>
@@ -192,9 +192,9 @@
                                 <!-- all marker -->
                                 <l-rotated-marker v-for="(data, key) in markerKapal" :key="key"
                                     :lat-lng="[parseFloat(data.lat), parseFloat(data.lon)]"
-                                    :icon="!data.timestamp || data.timestamp < data.tglNow ? iconOff : iconOn"
+                                    :icon="!data.last_update || convertLastUpdate(data.last_update) < data.tglNow ? iconOff : iconOn"
                                     :rotationAngle="data.heading ? parseInt(data.heading) : 0"
-                                    @click="getFirstActive(data.sn)">
+                                    @click="getFirstActive(data.sn, data.provider)">
                                     <l-popup class="map-popup">
                                         <table>
                                             <tr>
@@ -247,8 +247,8 @@
                                             <tr>
                                                 <th width="50%">Last Update</th>
                                                 <th>:</th>
-                                                <td :class="data.timestamp < data.tglNow ? 'text-danger' : ''">
-                                                    {{(data.timestamp != null) ? timeZoneConvert(data.last_update) : '-'}}
+                                                <td :class="convertLastUpdate(data.last_update) < data.tglNow ? 'text-danger' : ''">
+                                                    {{(data.last_update != null) ? timeZoneConvert(data.last_update) : '-'}}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -279,7 +279,7 @@
                                 <!-- rute marker -->
                                 <l-rotated-marker v-for="(data, key) in markerRute" :key="key"
                                     :lat-lng="[parseFloat(data.Latitude), parseFloat(data.Longitude)]"
-                                    :icon="data.kecepatan ? iconOn: iconOff"
+                                    :icon="(data.kecepatan != '0.0') ? iconOn: iconOff"
                                     :rotationAngle="data.Direction ? parseInt(data.Direction) : 0">
 
                                 </l-rotated-marker>
@@ -550,8 +550,7 @@ export default {
                 iconUrl: '/images/iconoff.png',
                 iconSize: [12, 12],
             }),
-            todayDate: moment().format('DD-MM-YYYY, H:mm:ss'),
-            utcdate: moment.utc("2022-06-28 05:48:25"),
+            provider:'-',
         };
     },
     beforeCreate: function () {
@@ -700,13 +699,17 @@ export default {
                     } else {
                         this.first_active = this.timeZoneConvert(response.data.results.first_active);
                     }
+
+                    this.provider = item.provider;
                 }
                 
             } catch (error) {
                 console.log(error);
             }
         },
-        async getFirstActive(sn){
+        async getFirstActive(sn, providerData){
+            this.provider = providerData;
+       
             this.first_active = 'Loading...';
             this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${sn.replace(/\s+/g, '').toLowerCase()}`;
             const response = await axios.get(this.getUrl);
@@ -790,8 +793,13 @@ export default {
 
                 
                 // if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
-
-                const response = await axios.post(`https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`, data);
+                var urlgettrack = '';
+                if (this.provider == 'OB') {
+                    urlgettrack = `https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`;
+                } else {
+                    urlgettrack = `https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`;
+                }
+                const response = await axios.post(urlgettrack, data);
                 
                 if (response.data['histori'] == 0) {
                     this.popupPesan('Data tracking tidak ditemukan !');
@@ -901,23 +909,35 @@ export default {
             return d.toISOString().split('T')[0];
         },
         timeZoneConvert(date){
-            var dateFormat = 'DD-MM-YYYY HH:mm:ss';
-            var varDate = date;
-            var myDate =  moment(varDate,"YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
+            if (date != null) {
+                var dateFormat = 'DD-MM-YYYY HH:mm:ss';
+                var myDate =  moment(date,"DD-MM-YYYY HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
 
-            var testDateUtc = moment.utc(myDate);
-            var localDate = testDateUtc.local();
-
-            var ketLocal = '';
-            var strLocal = moment.tz.guess();
-            if (strLocal == 'Asia/Jakarta') {
-                ketLocal = 'WIB';
-            } else if(strLocal == 'Asia/Ujung_Pandang'){
-                ketLocal = 'WITA';
-            }else if(strLocal == 'Asia/Jayapura'){
-                ketLocal = 'WIT';
+                var testDateUtc = moment.utc(myDate);
+                var localDate = testDateUtc.local();
+                
+                var ketLocal = '';
+                var strLocal = moment.tz.guess();
+                if (strLocal == 'Asia/Jakarta') {
+                    ketLocal = 'WIB';
+                } else if(strLocal == 'Asia/Ujung_Pandang'){
+                    ketLocal = 'WITA';
+                }else if(strLocal == 'Asia/Jayapura'){
+                    ketLocal = 'WIT';
+                }
+                return localDate.format(dateFormat)+' '+ ketLocal;
             }
-            return localDate.format(dateFormat)+' '+ ketLocal;
+        },
+        convertLastUpdate(date){
+            if (date != null) {
+                var dateFormat = 'DD-MM-YYYY';
+                var myDate =  moment(date,"DD-MM-YYYY HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
+
+                var testDateUtc = moment.utc(myDate);
+                var localDate = testDateUtc.local();
+            
+                return localDate.format(dateFormat);
+            } 
         }
     },
 };
