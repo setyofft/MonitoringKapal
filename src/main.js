@@ -1,58 +1,63 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import App from './App.vue'
+import Vue from "vue";
+import VueRouter from "vue-router";
+import App from "./App.vue";
 
-import VueSweetalert2 from 'vue-sweetalert2';
-import 'sweetalert2/dist/sweetalert2.min.css';
-import Vuelidate from 'vuelidate'
-import VueSession from 'vue-session'
-import 'leaflet/dist/leaflet.css';
-import LControlFullscreen from 'vue2-leaflet-fullscreen';
-import Vue2LeafletRotatedMarker from 'vue2-leaflet-rotatedmarker'
-import Multiselect from 'vue-multiselect';
+import VueSweetalert2 from "vue-sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
+import Vuelidate from "vuelidate";
+import VueSession from "vue-session";
+import "leaflet/dist/leaflet.css";
+import LControlFullscreen from "vue2-leaflet-fullscreen";
+import Vue2LeafletRotatedMarker from "vue2-leaflet-rotatedmarker";
+import Multiselect from "vue-multiselect";
 import JsonExcel from "vue-json-excel";
 
-import Sign from './components/Sign.vue'
-import Perusahaan from './components/Perusahaan.vue'
-import Customer from './components/Customer.vue'
+import Sign from "./components/Sign.vue";
+import Perusahaan from "./components/Perusahaan.vue";
+import Customer from "./components/Customer.vue";
+import PrivacyPolice from "./components/PrivacyPolice.vue";
 
-const originalPush = VueRouter.prototype.push
+const originalPush = VueRouter.prototype.push;
 VueRouter.prototype.push = function push(location) {
-    return originalPush.call(this, location).catch(err => err)
-}
+    return originalPush.call(this, location).catch((err) => err);
+};
 
-Vue.use(VueRouter)
-Vue.use(VueSweetalert2)
-Vue.use(Vuelidate)
-Vue.use(VueSession)
-Vue.component('l-control-fullscreen', LControlFullscreen);
-Vue.component('l-rotated-marker', Vue2LeafletRotatedMarker);
-Vue.component('multiselect', Multiselect);
-Vue.component('downloadExcel', JsonExcel);
+Vue.use(VueRouter);
+Vue.use(VueSweetalert2);
+Vue.use(Vuelidate);
+Vue.use(VueSession);
+Vue.component("l-control-fullscreen", LControlFullscreen);
+Vue.component("l-rotated-marker", Vue2LeafletRotatedMarker);
+Vue.component("multiselect", Multiselect);
+Vue.component("downloadExcel", JsonExcel);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
-const routes = [
-    {
-        name: 'Sign',
-        path: '/',
-        component: Sign
+const routes = [{
+        name: "Sign",
+        path: "/",
+        component: Sign,
     },
     {
-        name: 'Perusahaan',
-        path: '/perusahaan',
-        component: Perusahaan
+        name: "Perusahaan",
+        path: "/perusahaan",
+        component: Perusahaan,
     },
     {
-        name: 'Customer',
-        path: '/customers',
-        component: Customer
-    }
+        name: "Customer",
+        path: "/customers",
+        component: Customer,
+    },
+    {
+        name: "Privacy - Police",
+        path: "/privacy-police",
+        component: PrivacyPolice,
+    },
 ];
 
-const router = new VueRouter({ mode: 'history', routes: routes })
+const router = new VueRouter({ mode: "history", routes: routes });
 
 new Vue({
     router,
-    render: h => h(App),
-}).$mount('#app')
+    render: (h) => h(App),
+}).$mount("#app");
