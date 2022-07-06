@@ -20,7 +20,8 @@
                                 <input :type="searchKapalBy != 'active_date' ? 'text' : 'date'"
                                     class="form-control" style="padding-right:135px"
                                     :placeholder="searchKapalBy == 'name' ? 'Cari Nama Kapal' : 'Cari SN Kapal'" 
-                                    @keyup="cariNamaKapal" v-model="CnmKapal"
+                                    @keyup="cariNamaKapal" 
+                                    v-model="CnmKapal"
                                 >
                                 <select class="form-control custom-select-search my-1 pl-0" 
                                     v-model="searchKapalBy" @change="CnmKapal = ''">
@@ -176,7 +177,7 @@
                                         <hr>
                                         <div class="d-flex justify-content-between">
                                             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#tracing"
-                                                @click="getTanggal(detailKapal.sn)"
+                                                @click="getTanggal(detailKapal.sn, detailKapal.provider)"
                                             >
                                                 Tracing
                                             </button>
@@ -262,7 +263,7 @@
                                         <hr>
                                         <div class="d-flex justify-content-between">
                                             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" 
-                                                data-target="#tracing" @click="getTanggal(data.sn)"
+                                                data-target="#tracing" @click="getTanggal(data.sn, data.provider)"
                                             >
                                                 Tracing
                                             </button>
@@ -303,19 +304,22 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-check mb-3">
-                            <input v-model="filter" class="form-check-input" type="radio" id="default" value="default" checked>
+                            <input v-model="filter" class="form-check-input" type="radio" id="default" 
+                                value="default" checked>
                             <label class="form-check-label" for="default">
                                 Order Default
                             </label>
                         </div>
                         <div class="form-check mb-3">
-                            <input v-model="filter" class="form-check-input" type="radio" id="bynmkapal" value="bynmkapal">
+                            <input v-model="filter" class="form-check-input" type="radio" id="bynmkapal" 
+                            value="bynmkapal">
                             <label class="form-check-label" for="bynmkapal">
                                 Order By Nama Kapal
                             </label>
                         </div>
                         <div class="form-check mb-3">
-                            <input v-model="filter" class="form-check-input" type="radio" id="bylastposisi" value="bylastposisi">
+                            <input v-model="filter" class="form-check-input" type="radio" id="bylastposisi" 
+                            value="bylastposisi">
                             <label class="form-check-label" for="bylastposisi">
                                 Order By Last Position
                             </label>
@@ -551,6 +555,7 @@ export default {
                 iconSize: [12, 12],
             }),
             provider:'-',
+            checkedValue:'',
         };
     },
     beforeCreate: function () {
@@ -582,6 +587,9 @@ export default {
         },
         async getKapal(refresh_state = false) {
             try {
+                this.markerKapal = [];
+                this.markerRute = [];
+                this.lineLatLon = [];
                 this.showloadingBar();
                 if (this.$session.get('level') === 'root') {
                     this.getUrl = 'https://track.kapalpintar.co.id/api/kapal_all';
@@ -593,9 +601,6 @@ export default {
                     this.heading = this.tglHistori = this.dari = this.sampai = this.deviceId = this.CnmKapal =  this.selectedKapal = null;
                     this.stateRefresh = this.stateTrack = this.stateDownload = false;
                     this.center = [-5.3121961, 116.0877759];
-                    this.markerKapal = [];
-                    this.markerRute = [];
-                    this.lineLatLon = [];
                     // if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
                 }
 
@@ -610,7 +615,6 @@ export default {
 
                 this.markerKapal = addMarker;
                 
-
                 this.closeloadingBar();
             } catch (error) {
                 console.log(error);
@@ -633,9 +637,13 @@ export default {
         async filterKapal() {
             this.showloadingBar()
             try {
+                this.markerKapal = [];
+                this.markerRute = [];
+                this.lineLatLon = [];
+                this.kapal = [];
                 if (this.$session.get('level') === 'root') {
                     if(this.filter == 'default'){
-                        await this.getKapal();
+                        await this.getKapal(true);
                         return;
                     }else if(this.filter == 'bynmkapal'){
                         this.getUrl = 'https://track.kapalpintar.co.id/api/kapal_all_bynm';
@@ -646,7 +654,7 @@ export default {
                     }
                 } else {
                     if(this.filter == 'default'){
-                        await this.getKapal();
+                        await this.getKapal(true);
                         return;
                     }else if(this.filter == 'bynmkapal'){
                         this.getUrl = `https://track.kapalpintar.co.id/api/kapal_bynama/${this.$session.get('id')}`;
@@ -661,7 +669,14 @@ export default {
 
                 const response = await axios.get(this.getUrl);
                 this.kapal = response.data;
-                this.marekerKapal = response.data;
+                let addMarker = [];
+                for (let i = 0; i < response.data.length; i++) {
+                    if (response.data[i].lat != null && response.data[i].lat != '0.000000') {
+                        addMarker.push(response.data[i]);
+                    } 
+                }
+
+                this.markerKapal = addMarker;
 
                 this.closeloadingBar();
             } catch (error) {
@@ -687,11 +702,17 @@ export default {
                     //popup
                     this.detailKapal = item;
                 
-                    await this.getTanggal(item.sn);
+                    await this.getTanggal(item.sn, item.provider);
                     this.$refs['singleMarker'].mapObject.openPopup();
 
                     //get first active
-                    this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${item.sn.replace(/\s+/g, '').toLowerCase()}`;
+             
+                    if (item.provider == 'PIV') {
+                        this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${item.sn.replace(/\s+/g, '').toLowerCase()}`;
+                    } else if(item.provider == 'OB'){
+                        this.getUrl = `https://track.kapalpintar.co.id/api/ocean_byte/first_active/${item.sn.replace(/\s+/g, '').toLowerCase()}`;
+                    }
+                    
                     const response = await axios.get(this.getUrl);
                 
                     if (response.data.status == 0) {
@@ -711,7 +732,13 @@ export default {
             this.provider = providerData;
        
             this.first_active = 'Loading...';
-            this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${sn.replace(/\s+/g, '').toLowerCase()}`;
+
+            if (providerData == 'PIV') {
+                this.getUrl = `https://track.kapalpintar.co.id/api/kapal/first_active/${sn.replace(/\s+/g, '').toLowerCase()}`;
+            } else if(providerData == 'OB'){
+                 this.getUrl = `https://track.kapalpintar.co.id/api/ocean_byte/first_active/${sn.replace(/\s+/g, '').toLowerCase()}`;
+            }
+            
             const response = await axios.get(this.getUrl);
 
             this.first_active = this.timeZoneConvert(response.data.results.first_active);
@@ -719,6 +746,10 @@ export default {
         async cariNamaKapal() {
             try {
                 this.kapalSingle = [];
+                this.markerKapal = [];
+                this.markerRute = [];
+                this.lineLatLon = [];
+
                 if (this.$session.get('level') === 'root') {
                     this.getUrl = 'https://track.kapalpintar.co.id/api/kapal/search_all';
                 } else {
@@ -749,10 +780,16 @@ export default {
                 console.log(error);
             }
         },
-        async getTanggal(sn) {
+        async getTanggal(sn, providerData) {
             this.showloadingBar();
             try {
-                const response = await axios.get(`https://track.kapalpintar.co.id/api/histori_tgl/${sn}`);
+                var urlGetTgl = '';
+                if (providerData == 'PIV') {
+                    urlGetTgl = `https://track.kapalpintar.co.id/api/histori_tgl/${sn}`;
+                } else if(providerData == 'OB'){
+                    urlGetTgl = `https://track.kapalpintar.co.id/api/ocean_byte/histori_tgl/${sn}`;
+                }
+                const response = await axios.get(urlGetTgl);
                 this.tglHistori = response.data;
                 this.tgldari = response.data.length ? response.data[0].tanggal : null;
                 this.tglsampai = new Date().toISOString().slice(0, 10);
@@ -775,6 +812,7 @@ export default {
                 } else if(this.traceOption == 'lasyhowday') {
                     let day = parseInt(this.lasyhowday) ? parseInt(this.lasyhowday) : 10;
                     data.dari = new Date(new Date().getTime() - (day * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10);
+                    data.tipefilter = this.traceOption;
                 } else if(this.traceOption == 'filterdate') {
                     data.dari = this.tgldari;
                     data.sampai = this.tglsampai;
@@ -795,13 +833,13 @@ export default {
                 // if(this.$refs['singleMarker']) this.$refs['singleMarker'].mapObject.closePopup();
                 var urlgettrack = '';
                 if (this.provider == 'OB') {
-                    urlgettrack = `https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`;
+                    urlgettrack = `https://track.kapalpintar.co.id/api/ocean_byte/device_histori/${this.deviceId}`;
                 } else {
                     urlgettrack = `https://track.kapalpintar.co.id/api/histori_kapal/${this.deviceId}`;
                 }
-                const response = await axios.post(urlgettrack, data);
+                const response = await axios.post(urlgettrack,data);
                 
-                if (response.data['histori'] == 0) {
+                if (response.data['histori'].length == 0) {
                     this.popupPesan('Data tracking tidak ditemukan !');
                     return;
                 }else{
